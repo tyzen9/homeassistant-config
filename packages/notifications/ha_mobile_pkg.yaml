@@ -96,13 +96,17 @@ script:
   # This script is used to send messages to Home Assistant mobile devices by
   #   by the person selected.
   #
-  # Note - that each person in our household is assigned a number, and their
-  #        HA Companion device name is set to "Person_x"
+  # Note - that each person in our household is assigned a number, and the
+  #   lookups for that number are stored in the secrets.yaml file.
   #
   # Params
   #   title (String)(required)
   #   message (String)(required)
-  #   priority (String)(Default: "Normal") "Normal","Critical"
+  #   priority (String)(Default: "normal") "normal","critical"
+  #   presence (String)(Default: "either") "home","away"
+  #        "either" - send regardless of location
+  #        "home" - only send if the person is home
+  #        "away" - only send if the person is away
   #   only_if_away (Boolean)(Default: false)
   #   only_house_awake (Boolean)(Default: false)
   #   target (List)(required)
@@ -112,8 +116,8 @@ script:
   #    data:
   #     title: Test Title
   #     message: Message Body
-  #     priority: Normal
-  #     only_if_away: false
+  #     priority: normal
+  #     presence: either
   #     only_house_awake: false
   #     target:
   #       - person_1
@@ -145,21 +149,26 @@ script:
       priority:
         name: "Message Priority"
         description: "The priority of the message"
-        default: Normal
+        default: normal
         required: false
         selector:
           select:
             options:
-              - Normal
-              - Critical
+              - normal
+              - critical
             mode: dropdown
-      only_if_away:
-        name: "Only if Away"
-        description: "Only send this message if the recepient is away from home"
-        default: false
+      presence:
+        name: "Presence"
+        description: "Only send the message if this person is Home, Away or Either"
+        default: either
         required: false
         selector:
-          boolean:
+          select:
+            options:
+              - home
+              - away
+              - either
+            mode: dropdown
       only_house_awake:
         name: "Only when the house is awake"
         description: "Only send a notification when the house is awake (requires binary_sensor.house_awake)"
@@ -184,9 +193,9 @@ script:
     sequence:
       # These variables set default values if none are provided
       - variables:
-          pri: "{{ priority if priority is defined else 'Normal' }}"
+          pri: "{{ priority if priority is defined else 'normal' }}"
+          pres: "{{ presence if presence is defined else 'either' }}"
           oha: "{{ only_house_awake if only_house_awake is defined else false }}"
-          oia: "{{ only_if_away if only_if_away is defined else false }}"
           mobile_id: "null"
       - if:
           - condition: or
@@ -210,17 +219,19 @@ script:
                 - if:
                     - condition: or
                       conditions:
-                        # If we are NOT worried about the recepient's location
+                        # If we are NOT worried about the recepient's location then move on
                         - condition: template
-                          value_template: "{{ oia == False }}"
-                        # OR we are making sure this person is away before sending the message
+                          value_template: '{{ pres == "either" }}'
+                        # If ther person needs to be away, then make sure of that
                         - condition: and
                           conditions:
                             - condition: template
-                              value_template: "{{ oia == True }}"
+                              value_template: '{{ pres == "away" }}'
                             - condition: template
                               value_template: >
                                 {% if (repeat.item == 'person_1') and (states('binary_sensor.person_1_home') == 'off') %} 
+                                  true
+                                {% elif (repeat.item == 'person_2') and (states('binary_sensor.person_2_home') == 'off') %} 
                                   true
                                 {% elif (repeat.item == 'person_3') and (states('binary_sensor.person_3_home') == 'off') %}
                                   true
@@ -229,8 +240,26 @@ script:
                                 {% elif (repeat.item == 'person_5') and (states('binary_sensor.person_5_home') == 'off') %}
                                   true
                                 {% endif %}
+                        # If ther person needs to be home, then validate that!
+                        - condition: and
+                          conditions:
+                            - condition: template
+                              value_template: '{{ pres == "home" }}'
+                            - condition: template
+                              value_template: >
+                                {% if (repeat.item == 'person_1') and (states('binary_sensor.person_1_home') == 'on') %} 
+                                  true
+                                {% elif (repeat.item == 'person_2') and (states('binary_sensor.person_2_home') == 'on') %} 
+                                  true
+                                {% elif (repeat.item == 'person_3') and (states('binary_sensor.person_3_home') == 'on') %}
+                                  true
+                                {% elif (repeat.item == 'person_4') and (states('binary_sensor.person_4_home') == 'on') %}
+                                  true
+                                {% elif (repeat.item == 'person_5') and (states('binary_sensor.person_5_home') == 'on') %}
+                                  true
+                                {% endif %}
                   then:
-                    - action: script.notify_mobile_app
+                    - action: script.ha_send_mobile_notification
                       data:
                         mobile_id: >-
                           {% if (repeat.item == 'person_1') %}
@@ -252,40 +281,34 @@ script:
   # This script is used to send a notification to a HA Mobile Companion App
   #
   # Params
-  #  - host (string):   Then host name to update (i.e. "@", "www", "staging")
-  #  - domain (string): The domain name to pudate (i.e. "mydomain.com")
+  #   mobile_id (String)(required) - The mobile name to send the message to
+  #      -  This name is found in actions and is formatted like: notify.mobile_app_bobs_iphone
+  #         In this case you should pass "bobs_iphone"
+  #   msg_title (String)(required) - Title of the message to send
+  #   msg_body  (String) - The body of the message to send
+  #   priority  (String)(Default: "Normal") "Normal","Critical"
   #
-  # For usage details, please read:
-  #   https://www.namecheap.com/support/knowledgebase/article.aspx/29/11/how-to-dynamically-update-the-hosts-ip-with-an-https-request/
-  #
-  #  Dependencies:
-  #  - secrets.yaml
   # ---------------------------------------------------------------------------
-  notify_mobile_app:
-    alias: "Notify HA Mobile App"
+  ha_send_mobile_notification:
+    alias: " HA Mobile - Send Notification"
     sequence:
       - variables:
           mobile_id: "{{ mobile_id }}"
           msg_title: "{{ msg_title }}"
           msg_body: "{{ msg_body }}"
-          pri: "{{ priority }}"
+          pri: "{{ priority if priority is defined else 'Normal' }}"
 
-      - action: persistent_notification.create
-        data:
-          title: "Reach out and touch..."
-          message: "notify.mobile_app_{{ mobile_id }}   Priority: {{ priority }}"
+      # Log a notification to Home Assistant for debugging
+      # - action: persistent_notification.create
+      #   data:
+      #     title: "Reach out and touch..."
+      #     message: "notify.mobile_app_{{ mobile_id }}   Priority: {{ priority }}"
 
       - if:
           - condition: template
-            value_template: '{{ pri == "Normal" }}'
-        # If this is a "Normal" notification we do this
+            value_template: '{{ pri == "critical" }}'
+        # If this is a "Critical" priority notification we do this
         then:
-          - action: notify.mobile_app_{{ mobile_id }}
-            data:
-              title: "{{ msg_title }}"
-              message: "{{ msg_body }}"
-        # If this is critical, then do this
-        else:
           - action: notify.mobile_app_{{ mobile_id }}
             data:
               title: "{{ msg_title }}"
@@ -296,3 +319,9 @@ script:
                     name: "default"
                     critical: 1
                     volume: 1.0
+        # If this is a normal priority, then do this
+        else:
+          - action: notify.mobile_app_{{ mobile_id }}
+            data:
+              title: "{{ msg_title }}"
+              message: "{{ msg_body }}"
