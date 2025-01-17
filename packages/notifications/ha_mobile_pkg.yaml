@@ -65,8 +65,7 @@ template:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 notify:
   # ---------------------------------------------------------------------------
-  # This notification is used by primarity by my alerts to send critical alert
-  #  notification.
+  # This notification is used mostly by alerts to send critical alerts
   #
   # Usage Example:
   #   action: notify.critical_message
@@ -93,8 +92,8 @@ notify:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 script:
   # ---------------------------------------------------------------------------
-  # This script is used to send messages to Home Assistant mobile devices by
-  #   by the person selected.
+  # This script is used to send messages to one or move Home Assistant mobile
+  #   devices
   #
   # Note - that each person in our household is assigned a number, and the
   #   lookups for that number are stored in the secrets.yaml file.
@@ -122,9 +121,8 @@ script:
   #     target:
   #       - person_1
   #
-  #  Dependencies:
+  #   Dependencies:
   #  - binary_sensor.house_awake (YAML house_pkg.yaml)
-  #  - notify.mobile_app_person_x (HA Companion App https://companion.home-assistant.io/)
   # ---------------------------------------------------------------------------
   ha_mobile_notification:
     alias: HA Mobile - Notification
@@ -281,13 +279,17 @@ script:
   # This script is used to send a notification to a HA Mobile Companion App
   #
   # Params
-  #   mobile_id (String)(required) - The mobile name to send the message to
-  #      -  This name is found in actions and is formatted like: notify.mobile_app_bobs_iphone
-  #         In this case you should pass "bobs_iphone"
+  #   mobile_id (String)(required) - The mobile_id to send the message to
+  #      - This name is found in actions and is formatted like: notify.mobile_app_bobs_iphone
+  #        In this case you should pass "bobs_iphone"
+  #      - This name is also found in the companion app settings, under the
+  #        server name, and the propery "Device Name"
   #   msg_title (String)(required) - Title of the message to send
   #   msg_body  (String) - The body of the message to send
   #   priority  (String)(Default: "Normal") "Normal","Critical"
   #
+  # Dependencies:
+  #  - notify.mobile_app_person_x (HA Companion App https://companion.home-assistant.io/)
   # ---------------------------------------------------------------------------
   ha_send_mobile_notification:
     alias: " HA Mobile - Send Notification"
@@ -298,18 +300,12 @@ script:
           msg_body: "{{ msg_body }}"
           pri: "{{ priority if priority is defined else 'Normal' }}"
 
-      # Log a notification to Home Assistant for debugging
-      # - action: persistent_notification.create
-      #   data:
-      #     title: "Reach out and touch..."
-      #     message: "notify.mobile_app_{{ mobile_id }}   Priority: {{ priority }}"
-
       - if:
           - condition: template
             value_template: '{{ pri == "critical" }}'
         # If this is a "Critical" priority notification we do this
         then:
-          - action: notify.mobile_app_{{ mobile_id }}
+          - action: notify.{{ mobile_id }}
             data:
               title: "{{ msg_title }}"
               message: "{{ msg_body }}"
@@ -321,7 +317,7 @@ script:
                     volume: 1.0
         # If this is a normal priority, then do this
         else:
-          - action: notify.mobile_app_{{ mobile_id }}
+          - action: notify.{{ mobile_id }}
             data:
               title: "{{ msg_title }}"
               message: "{{ msg_body }}"
