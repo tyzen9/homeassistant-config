@@ -1,0 +1,181 @@
+# *****************************************************************************
+# "Daytona" PC Package - This is all the functionality that originates from the
+#    PC named "Daytona"
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# Package Depednecies:
+#   - wled_utilities_pkg.yaml is needed for the common and custom WLED functions
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_button:
+  button_wol_daytona:
+    name: PC Daytona - Wake On LAN
+    icon: mdi:sleep-off
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When this PC's microphone is active, mute Alexa
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: PC Daytona - Microphone Active Actions
+    id: pc_daytona_microphone_active_actions
+    description: "When the PC's microphone is active, quiet Alexa"
+    mode: single
+    triggers:
+      # When the microphone is active
+      - trigger: state
+        entity_id: binary_sensor.daytona_microphoneactive
+        from: "off"
+        to: "on"
+    actions:
+      # Mute the Alexa volume
+      - action: media_player.volume_set
+        data:
+          volume_level: 0.0
+        target:
+          entity_id:
+            - media_player.alexa_office
+
+  # ---------------------------------------------------------------------------
+  # When this PC's microphone is active, reset the Alexa volumne.
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: PC Daytona - Microphone Dectivated Actions
+    id: ps_daytona_microphone_deactivated_actions
+    description: "When the PC's microphone is deactivated, reset Alexa volumne"
+    mode: single
+    triggers:
+      # When the microphone is deactivated
+      - trigger: state
+        entity_id: binary_sensor.daytona_microphoneactive
+        from: "on"
+        to: "off"
+    actions:
+      # Rerset the Alexa volume
+      - action: media_player.volume_set
+        data:
+          volume_level: 0.5
+        target:
+          entity_id:
+            - media_player.alexa_office
+
+  # ---------------------------------------------------------------------------
+  # When this PC's microphone is active, set some lighting for office
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: PD Daytona - Webcam Active Actions
+    id: pc_daytona_webcam_active_actions
+    description: "When the PC's webcam is active, set some lighting"
+    mode: single
+    triggers:
+      # When the microphone is active
+      - trigger: state
+        entity_id: binary_sensor.daytona_webcamactive
+        from: "off"
+        to: "on"
+    actions:
+      # Define a new scene based on the current state of these RGBW bulbs
+      - action: scene.create
+        data:
+          scene_id: daytona_premeeting_lighting
+          snapshot_entities:
+            - light.dimmer_wd14_dimmer
+            - light.dimmer_wd07_dimmer
+      # Activate the meeting active scene
+      - action: scene.turn_on
+        target:
+          entity_id: scene.daytona_active_meeting
+
+  # ---------------------------------------------------------------------------
+  # When this PC's webcam is deactivated, revert the lighting to the previous
+  # configuration.
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: PC Daytona - Webcam Dectivated Actions
+    id: pc_daytona_webcam_deactivated_actions
+    description: "When the PC's webcam is deactivated, reset some lighing"
+    mode: single
+    triggers:
+      # When the microphone is active
+      - trigger: state
+        entity_id: binary_sensor.daytona_webcamactive
+        from: "on"
+        to: "off"
+        for:
+          seconds: 15
+    actions:
+      # Revert to the scene that was saved when the microphone turned on
+      - action: scene.turn_on
+        target:
+          entity_id: scene.daytona_premeeting_lighting
+
+  # ---------------------------------------------------------------------------
+  # When the PC shuts down, then turn off some accent lighting
+  #
+  # ---------------------------------------------------------------------------
+  - alias: PC Daytona - Power Off
+    id: pc_daytona_power_off
+    description: ""
+    mode: single
+    triggers:
+      # When the PC is turned off
+      - trigger: state
+        entity_id: sensor.daytona_monitorpowerstate
+        to: "unavailable"
+    action:
+      - action: script.wled_off
+        data:
+          wled_hostname: "wled-basement-office.local"
+
+  # ---------------------------------------------------------------------------
+  # When the PC turns on, then turn on some accent lighting
+  #
+  # ---------------------------------------------------------------------------
+  - alias: PC Daytona - Power On
+    id: pc_daytona_power_on
+    description: ""
+    mode: single
+    triggers:
+      # When the PC is turned off
+      - trigger: state
+        entity_id: sensor.daytona_monitorpowerstate
+        to: "PowerOn"
+    action:
+      # Then turn off some accent lighting
+      - action: script.wled_on
+        data:
+          wled_hostname: "wled-basement-office.local"

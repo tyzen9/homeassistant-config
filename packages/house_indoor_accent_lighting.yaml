@@ -1,0 +1,233 @@
+# *****************************************************************************
+# House Indoor Accent Lighting
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - Zigbee: https://www.home-assistant.io/integrations/zha
+#   - HACS: https://hacs.xyz
+#   - Alexa Media Player: https://github.com/alandtse/alexa_media_player
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# GROUPS
+#
+#      >>>>>>>>>> ADD SWITCHES AND LIGHT DEVICES IN THESE GROUPS <<<<<<<<<<<
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+switch:
+  - platform: group
+    name: Indoor Accent Switch Group
+    unique_id: indoor_accent_switch_group
+    entities:
+      # - switch.plug_zp06
+      # - switch.plug_zp05
+      # - switch.plug_zp10
+      # - switch.plug_zp11
+      - switch.plug_zp04 # Dining Room Cabinet
+
+# light:
+#   - platform: group
+#     name: Indoor Accent Light Group
+#     unique_id: indoor_accent_light_group
+#     entities:
+#       - light.rgbw_shelly01
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_boolean:
+  indoor_accent_lighting:
+    name: Toggle - Indoor Accent Lighting
+    icon: mdi:light-switch
+
+schedule:
+  accent_indoor_lighting:
+    name: Schedule - Accent Indoor Lighting
+    icon: mdi:timer-outline
+    monday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    tuesday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    wednesday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    thursday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    friday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    saturday:
+      - from: "07:00:00"
+        to: "23:00:00"
+    sunday:
+      - from: "07:00:00"
+        to: "23:00:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Toggle the indoor accent lighting based on the the condition of the helper
+  #
+  # Dependencies: <all in this package>
+  # ---------------------------------------------------------------------------
+  - alias: "Indoor Accent Lighting - Toggled"
+    id: indoor_accent_lighting_toggled
+    description: "Toggle the interior accent lighting when the helper toggle changes states"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: input_boolean.indoor_accent_lighting
+    actions:
+      - if:
+          # If the indoor accent lighting helper is active
+          - condition: state
+            entity_id: input_boolean.indoor_accent_lighting
+            state: "on"
+        then:
+          # Turn on all the indoor accent switch/lights
+          - action: switch.turn_on
+            target:
+              entity_id:
+                - switch.indoor_accent_switch_group
+          # - action: light.turn_on
+          #   target:
+          #     entity_id:
+          #       - light.indoor_accent_light_group
+        else:
+          # Turn off all the indoor accent switch/lights
+          - action: switch.turn_off
+            target:
+              entity_id:
+                - switch.indoor_accent_switch_group
+          # - action: light.turn_off
+          #   target:
+          #     entity_id:
+          #       - light.indoor_accent_light_group
+
+  # ---------------------------------------------------------------------------
+  # Turn on the indoor accent lighting when a schedule helper turns on. The
+  # outdoor lighting will be controlled by the landscape lighting
+  #
+  # Dependencies:
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: "Indoor Accent Lighting - Scheduled On"
+    id: indoor_accent_lighting_scheduled_on
+    description: "Turn on the indoor accent lighting when a schedule helper turns on, and the house is occupied."
+    mode: single
+    # When the accent lighting schedule is active
+    triggers:
+      - trigger: state
+        entity_id: schedule.accent_indoor_lighting
+        from: "off"
+        to: "on"
+    conditions:
+      # If the house is considered occupied
+      condition: state
+      entity_id: binary_sensor.house_occupied
+      state: "on"
+    action:
+      ## Turn on the accent lights
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.indoor_accent_lighting
+
+  # ---------------------------------------------------------------------------
+  # Turn off the indoor accent lighting when a schedule helper expires. The
+  # outdoor lighting will be controlled by the landscape lighting
+  #
+  # Dependencies:
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: "Indoor Accent Lighting - Scheduled On"
+    id: indoor_accent_lighting_scheduled_off
+    description: "Turn off the indoor accent lighting when a schedule helper expires"
+    mode: single
+    # When the house is awake
+    triggers:
+      - trigger: state
+        entity_id: schedule.accent_indoor_lighting
+        from: "on"
+        to: "off"
+    action:
+      # Turn off the accent lights
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.indoor_accent_lighting
+
+  # ---------------------------------------------------------------------------
+  # When the house is empty, turn off the indoor accent lighting. The
+  # outdoor lighting will be controlled by the landscape lighting
+  #
+  # Dependencies:
+  #  - binary_sensor.house_occupied (people_pkg.yamlt)
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Indoor Accent Lighting - House Unoccupied
+    id: indoor_accent_lighting_house_unoccupied
+    description: "When the house is empty, turn the indoor accent lighting off"
+    mode: single
+    # If nobody is home
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.house_occupied
+        from: "on"
+        to: "off"
+    action:
+      # Turn off the accent lights
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.indoor_accent_lighting
+
+  # ---------------------------------------------------------------------------
+  # When the house is occupied, turn the indoor accent lighting on if the
+  # schedule is activly on
+  #
+  # Dependencies:
+  #  - binary_sensor.house_occupied (people_pkg.yamlt)
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Indoor Accent Lighting - House Occupied
+    id: indoor_accent_lighting_house_occupied
+    description: "When a person returns home, turn the indoor accent lighting on"
+    mode: single
+    # When the house is occupied again
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.house_occupied
+        from: "off"
+        to: "on"
+    conditions:
+      # If the lighting schedule is active
+      condition: state
+      entity_id: schedule.accent_indoor_lighting
+      state: "on"
+    action:
+      # Turn on the accent lights
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.indoor_accent_lighting

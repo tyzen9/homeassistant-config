@@ -1,0 +1,95 @@
+# *****************************************************************************
+# Integration Package - This package is used to create sensors and monitors on
+#  integrations as a whole
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - UI Helper: A helper configured in the Home Assistant User Interface
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template: 
+  # ---------------------------------------------------------------------------
+  # This sensor provides the count of unavailable Zigbee devices, and an
+  # attribute that lists in JSON the devices that are unavailable.
+  # ---------------------------------------------------------------------------
+  - sensor:
+      - name: "Zigbee - Unavailable Devices"
+        unique_id: zigbee_unavailable_devices
+        state: >
+          {% set data = namespace(numbers=[]) %}
+          {%- for da in expand(integration_entities('zha') ) |selectattr( 'state','eq', 'unavailable') | list -%}
+            {% set data.numbers = data.numbers + [device_entities(device_attr(da.entity_id, 'id')) | first] %}
+          {%- endfor -%}
+          {{ data.numbers | unique | list | count }}
+        attributes:
+          device_list: >
+            {% set data = namespace(numbers=[]) %}
+            {%- for da in expand(integration_entities('zha') ) |selectattr( 'state','eq', 'unavailable') | list -%}
+              {% set data.numbers = data.numbers + [device_entities(device_attr(da.entity_id, 'id')) | first] %}
+            {%- endfor -%}
+            [
+              {%- for filt in data.numbers | unique -%}
+                {{ {"name": device_attr(filt, 'name_by_user')} }} 
+                ,
+              {%- endfor -%}
+            ]
+
+  # ---------------------------------------------------------------------------
+  # This binary sensor is used by the alert below.  If this sensor turns on
+  # then the alert will kick off
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Zigbee - Unavalable Device Alert
+        unique_id: zigbee_unavailable_device_alert
+        icon: mdi:pump
+        state: >
+          {{ states('sensor.zigbee_unavailable_devices')|float(0) > 0 }}      
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ALERTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alert:
+  # ---------------------------------------------------------------------------
+  # Sends an alert if there are any Zigbee (ZHA) devices that become unavailable
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  zigbee_unavailable_device:
+    name: Zigbee Device Issue
+    entity_id: sensor.zigbee_unavailable_device_alert
+    state: "on"
+    skip_first: true
+    repeat:
+      - 30
+      - 360
+      - 720
+      - 1440
+      - 2880
+    title: "{{ states('sensor.zigbee_unavailable_devices') }} Zigbee Device Issues"
+    message: 'These devices need attention: {{ state_attr(states("sensor.zigbee_unavailable_devices"), "device_list") }}'
+    done_message: 'RESOLVED: All Zigbee devices are available".'
+    notifiers:
+      - critical_message

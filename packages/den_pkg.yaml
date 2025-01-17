@@ -1,0 +1,53 @@
+# *****************************************************************************
+# Den Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Set the default brightness of the ceiling lights when initially switched on
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  # --------------------------------------------------------------------------- 
+  - alias: Den - Set Dimmer Default Brightness
+    id: den_dimmer_set_default_brightness
+    description: "When this dimmer it turned on from off, set the default brightness level"
+    mode: single
+    trigger:
+      # When the dimmer is turned on
+      - platform: state
+        entity_id: light.dimmer_wd05_dimmer
+        from: "off"
+        to: "on"
+    action:
+      # Set the default light brightness
+      - action: light.turn_on
+        entity_id: light.dimmer_wd05_dimmer
+        data:
+          brightness_pct: 100
+
+

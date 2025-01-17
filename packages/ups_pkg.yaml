@@ -1,0 +1,262 @@
+# *****************************************************************************
+# UPS Package - All things related to uninterruptable power supplies used
+#               in my house.
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - NUT: https://www.home-assistant.io/integrations/nut/
+#   - YAML scripts: https://www.home-assistant.io/integrations/script/
+#   - YAML notify: https://www.home-assistant.io/integrations/notify/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # These binary sensors are used to monitor the status code of the UPS
+  # devices.  If then contain "OB" then thay are runnin "On Battery" and they
+  # are not getting power
+  #
+  # Dependencies:
+  #  - sensor.ups_*_status_data (INT NUT)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: UPS 1 - Power Outage
+        unique_id: ups_1_power_outage
+        state: >
+          {{ 'OB' in states('sensor.ups_1_status_data') }}
+
+  - binary_sensor:
+      - name: UPS 2 - Power Outage
+        unique_id: ups_2_power_outage
+        state: >
+          {{ 'OB' in states('sensor.ups_2_status_data') }}
+
+  - binary_sensor:
+      - name: UPS 3 - Power Outage
+        unique_id: ups_3_power_outage
+        state: >
+          {{ 'OB' in states('sensor.ups_3_status_data') }}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ALERTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alert:
+  # ---------------------------------------------------------------------------
+  # Sends an alert if any of the UPS devices are running on battery
+  #
+  # Dependencies:
+  #  - notify.critical (YAML notify)
+  # ---------------------------------------------------------------------------
+  ups_1_power_outage:
+    name: UPS 1 (RasPis) - Power Outage
+    # Sensor being monitored
+    entity_id: binary_sensor.ups_1_power_outage
+    state: "on"
+    repeat:
+      - 5
+      - 15
+      - 30
+      - 60
+    title: "UPS 1 (RasPis) - Power Outage"
+    message: 'UPS 1 is reporting state: "{{ states.sensor.ups_1_status.state }}"'
+    done_message: 'RESOLVED: UPS 1 is now "{{ states.sensor.ups_1_status.state }}".'
+    notifiers:
+      - critical_message
+
+  ups_2_power_outage:
+    name: UPS 2 (Modem/Router) - Power Outage
+    # Sensor being monitored
+    entity_id: binary_sensor.ups_2_power_outage
+    state: "on"
+    repeat:
+      - 5
+      - 15
+      - 30
+      - 60
+    title: "UPS 2 (Modem/Router) - Power Outage"
+    message: 'UPS 2 is reporting state: "{{ states.sensor.ups_2_status.state }}"'
+    done_message: 'RESOLVED: UPS 2 is now "{{ states.sensor.ups_2_status.state }}".'
+    notifiers:
+      - critical_message
+
+  ups_3_power_outage:
+    name: UPS 3 (Server) - Power Outage
+    # Sensor being monitored
+    entity_id: binary_sensor.ups_3_power_outage
+    state: "on"
+    repeat:
+      - 5
+      - 15
+      - 30
+      - 60
+    title: "UPS 3 (Server) - Power Outage"
+    message: 'UPS 3 is reporting state: "{{ states.sensor.ups_3_status.state }}"'
+    done_message: 'RESOLVED: UPS 3 is now "{{ states.sensor.ups_3_status.state }}".'
+    notifiers:
+      - critical_message
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # If any of the UPS devices indicate a battery replacement "RB" warning,
+  # then send a critical notification to people
+  #
+  # Dependencies:
+  #  - sensor.ups_*_status_data (INT NUT)
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - alias: UPS 1 (RasPis) - Battery Replacement Warning
+    id: ups_1_battery_replacement_warning
+    description: "A warning message if the battery needs replacement"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_1_status_data
+    # If the new state (trigger.to_state.state) contains the string "RB"
+    condition:
+      condition: template
+      value_template: "{{ 'RB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Replace Battery"
+          message: "UPS 1 (RasPis) recommends a battery replacement"
+          priority: Critical
+          target:
+            - person_1
+
+  - alias: UPS 2 (Modem/Router) - Battery Replacement Warning
+    id: ups_2_battery_replacement_warning
+    description: "A warning message if the battery needs replacement"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_2_status_data
+    # If the new state (trigger.to_state.state) contains the string "RB"
+    condition:
+      condition: template
+      value_template: "{{ 'RB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Replace Battery"
+          message: "UPS 2 (Modem/Router) recommends a battery replacement"
+          priority: Critical
+          target:
+            - person_1
+
+  - alias: UPS 3 (Server) - Battery Replacement Warning
+    id: ups_3_battery_replacement_warning
+    description: "A warning message if the battery needs replacement"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_3_status_data
+    # If the new state (trigger.to_state.state) contains the string "RB"
+    condition:
+      condition: template
+      value_template: "{{ 'RB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Replace Battery"
+          message: "UPS 3 (Server) recommends a battery replacement"
+          priority: Critical
+          target:
+            - person_1
+
+  # ---------------------------------------------------------------------------
+  # If any of the UPS devices are running on Battery and indicate a low battery
+  # warning "LB", then warn users that the device's battery will die soon and
+  # the unit(s) they are powering will shut down with them.
+  #
+  # Dependencies:
+  #  - sensor.ups_*_status_data (INT NUT)
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - alias: UPS 1 (RasPis) - Low Battery Warning
+    id: ups_1_low_battery_warning
+    description: "A warning message if the UPS 1 battery is about to expire during a power outage"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_1_status_data
+    # If the new state (trigger.to_state.state) contains the string "LB"
+    condition:
+      condition: template
+      value_template: "{{ 'LB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Low Battery"
+          message: "UPS 1 (RasPis) will power down soon, Status: {{ states.sensor.ups_1_status.state }}"
+          priority: Critical
+          target:
+            - person_1
+
+  - alias: UPS 2 (Modem/Router) - Low Battery Warning
+    id: ups_2_low_battery_warning
+    description: "A warning message if the UPS 2 battery is about to expire during a power outage"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_2_status_data
+    # If the new state (trigger.to_state.state) contains the string "LB"
+    condition:
+      condition: template
+      value_template: "{{ 'LB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Low Battery"
+          message: "UPS 2 (Modem/Router) will power down soon, Status: {{ states.sensor.ups_2_status.state }}"
+          priority: Critical
+          target:
+            - person_1
+
+  - alias: UPS 3 (Server) - Low Battery Warning
+    id: ups_3_low_battery_warning
+    description: "A warning message if the battery is about to expire during a power outage"
+    # When the status_data sensor changes value
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_3_status_data
+    # If the new state (trigger.to_state.state) contains the string "LB"
+    condition:
+      condition: template
+      value_template: "{{ 'LB' in trigger.to_state.state }}"
+    # Send a notification
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "🪫Low Battery"
+          message: "UPS 3 (Server) will power down soon, Status: {{ states.sensor.ups_3_status.state }}"
+          priority: Critical
+          target:
+            - person_1

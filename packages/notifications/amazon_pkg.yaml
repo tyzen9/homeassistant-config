@@ -1,0 +1,155 @@
+# *****************************************************************************
+# Amazon Package - Used for controlling Amazon smart devices, typically
+#  smart speakers
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - HACS Alexa Media Player: https://github.com/alandtse/alexa_media_player/wiki
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# GROUPS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# NOTE: The new style groups do not work with notify.alexa_media
+group:
+  alexa_inside:
+    name: Alexa - Interior Speakers
+    entities:
+      - media_player.alexa_office
+      - media_player.alexa_kitchen
+      - media_player.alexa_theater
+      - media_player.alexa_logan
+      - media_player.alexa_main_bedroom
+      #- media_player.alexa_echo_living_room
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SCRIPTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+script:
+  # ---------------------------------------------------------------------------
+  # This script is used to send an announcement to Amazon smart speakers
+  #
+  # Params
+  #  - message (string):
+  #  - volume (string):
+  #  - announcement (boolean):
+  #  - quite_hours (boolean):
+  #  - target (list):
+  #
+  #  Dependencies:
+  #  - notify.alexa_media  (HACS Alexa Media Player)
+  #  - binary_sensor.house_awake (YAML house_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  amazon_device_announcement:
+    alias: Amazon Device Announcement
+    icon: mdi:speaker-message
+    description: "Send an announcement to Amazon smart speakers"
+    mode: single
+    max_exceeded: silent
+    # These are the fields available in the developer tools Actions section, as
+    # well as the parameters that are passed in
+    fields:
+      message:
+        name: "Message"
+        description: "The message to be read by the device"
+        default: "This is an announcement test."
+        required: true
+        selector:
+          text:
+      volume:
+        name: "Volume"
+        description: "The volume of the message"
+        default: Normal
+        required: true
+        selector:
+          select:
+            options:
+              - Normal
+              - Quiet
+              - Whisper
+            mode: dropdown
+      announcement:
+        name: "Announcement Tone"
+        description: "Play the announcemnet tone before reading the message"
+        required: true
+        selector:
+          boolean:
+      only_house_awake:
+        name: "Only Announce when the house is awake"
+        description: "Only make announcements when the house is awake (requires binary_sensor.house_awake)"
+        default: true
+        required: true
+        selector:
+          boolean:
+      target:
+        name: "Target Devices"
+        description: "The device(s) on which to make the announcement"
+        required: true
+        selector:
+          entity:
+            include_entities:
+              - group.alexa_inside
+              - media_player.alexa_kitchen
+              - media_player.alexa_office
+              - media_player.alexa_theater
+              - media_player.alexa_garage
+              - media_player.alexa_logan
+              - media_player.alexa_main_bedroom
+              #- media_player.alexa_living_room
+            multiple: true
+    sequence:
+      - if:
+          - condition: or
+            conditions:
+              # If we are NOT worried about quiet hours
+              - condition: template
+                value_template: "{{ only_house_awake == False }}"
+              # OR we are respecting quiet hours, and quiet hours are off
+              - condition: and
+                conditions:
+                  - condition: template
+                    value_template: "{{ only_house_awake == True }}"
+                  - condition: state
+                    entity_id: binary_sensor.house_awake
+                    state: "on"
+        then:
+          - action: notify.alexa_media
+            data:
+              message: >
+                {% if volume == "Whisper" %}
+                  <amazon:effect name="whispered">{{ message }}</amazon:effect>
+                {% elif volume == "Quiet" %}
+                  <prosody volume="-20dB">{{ message }}</prosody>
+                {% else %}
+                  {{ message }}
+                {% endif %}
+              data:
+                type: >
+                  {% if announcement  %}
+                    announce
+                  {% else %}
+                    tts
+                  {% endif %}
+              target: "{{ target }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "No Announcement"
+              message: 'The announcement: "{{ message }}" was not made because quiet hours are being respected.'

@@ -1,0 +1,167 @@
+# *****************************************************************************
+# Guest Room 1 Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - Zigbee: https://www.home-assistant.io/integrations/zha
+#   - HACS: https://hacs.xyz
+#   - Alexa Media Player: https://github.com/alandtse/alexa_media_player
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+schedule:
+  guest_1_accent_lighting:
+    name: Schedule - Guest Room 1 Accent Lighting
+    icon: mdi:timer-outline
+    monday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    tuesday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    wednesday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    thursday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    friday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    saturday:
+      - from: "20:30:00"
+        to: "24:00:00"
+    sunday:
+      - from: "20:30:00"
+        to: "24:00:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Turn on the accent lighting when a schedule helper turns on.
+  #
+  # Dependencies:
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: "Bedroom Guest 1 - Scheduled Accent Lighting on"
+    id: bedroom_guest_1_scheduled_accent_lighting_on
+    description: "Turn on the accent lighting when a schedule helper turns on."
+    mode: single
+    # When the house is awake
+    trigger:
+      - platform: state
+        entity_id: schedule.guest_1_accent_lighting
+        from: "off"
+        to: "on"
+    action:
+      ## Turn on the accent lights
+      - action: switch.turn_on
+        target:
+          entity_id:
+            - switch.plug_zp1
+            - switch.plug_zp2
+
+  # ---------------------------------------------------------------------------
+  # Turn off the accent lighting when a schedule helper expires.
+  #
+  # Dependencies:
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: "Bedroom Guest 1 - Scheduled Accent Lighting off"
+    id: bedroom_guest_1_scheduled_accent_lighting_off
+    description: "Turn off the accent lighting when a schedule helper expires"
+    mode: single
+    # When the house is awake
+    trigger:
+      - platform: state
+        entity_id: schedule.guest_1_accent_lighting
+        from: "on"
+        to: "off"
+    action:
+      # Turn off the accent lights
+      - action: switch.turn_off
+        target:
+          entity_id:
+            - switch.plug_zp1
+            - switch.plug_zp2
+
+  # ---------------------------------------------------------------------------
+  # When the room occupant leaves home, turn the accent lighting off
+  #
+  # Dependencies:
+  #  - binary_sensor.person_4_home (people_pkg.yamlt)
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Bedroom Guest 1 - Person Left Home Accent Lighting Off
+    id: bedroom_guest_1_person_left_home_accent_lighting_off
+    description: "When the room occupant leaves home, turn the accent lighting off"
+    mode: single
+    # When this person leaves the home zone
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.person_4_home
+        from: "on"
+        to: "off"
+    action:
+      # Turn off the accent lights
+      - action: switch.turn_off
+        target:
+          entity_id:
+            - switch.plug_zp1
+            - switch.plug_zp2
+
+  # ---------------------------------------------------------------------------
+  # When the room occupant arrives home, turn the accent lighting on if the
+  # schedule is activly on
+  #
+  # Dependencies:
+  #  - binary_sensor.person_4_home (people_pkg.yamlt)
+  #  - switch.plug_zp*_switch (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Bedroom_Guest 1 - Person Arrive Home Accent Lighting On
+    id: bedroom_guest_1_person_arrive_home_accent_lighting_on
+    description: "When the room occupant arrives home, turn the accent lighting on"
+    mode: single
+    # When this person leaves the home zone
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.person_4_home
+        from: "off"
+        to: "on"
+    condition:
+      # If the lighting schedule is active
+      condition: state
+      entity_id: schedule.guest_1_accent_lighting
+      state: "on"
+    action:
+      # Turn on the accent lights
+      - action: switch.turn_on
+        target:
+          entity_id:
+            - switch.plug_zp1
+            - switch.plug_zp2

@@ -1,0 +1,174 @@
+# *****************************************************************************
+# 3D Printer Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - OctoPrint: https://www.home-assistant.io/integrations/octoprint/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_boolean:
+  3d_printer_auto_off:
+    name: Toggle - 3D Printer Auto Power Off
+    icon: mdi:auto-fix
+
+timer:
+  3d_printer_auto_off:
+    name: Timer - 3D Printer Auto Off
+    icon: mdi:timer-outline
+    duration: "00:05:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When the 3D printer completes a printing job, send a notification.  If the
+  # auto power off toggle is set, then in the notification provide the time
+  # until power off
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  #  - binary_sensor.octoprint_printing (INT OctoPprint)
+  # ---------------------------------------------------------------------------
+  - alias: 3D Printer - Printing Completed Notification
+    id: 3d_printer_printing_completed_notification
+    description: "When the 3D printer completes a printing job, send a notification."
+    mode: single
+    triggers:
+      # When the printer has completed printing
+      - trigger: state
+        entity_id:
+          - binary_sensor.octoprint_printing
+        from: "on"
+        to: "off"
+    action:
+      - if:
+          # If the auto power off is enabled
+          - condition: state
+            entity_id: input_boolean.3d_printer_auto_off
+            state: "on"
+        then:
+          # Start the timer
+          - action: timer.start
+            target:
+              entity_id: timer.3d_printer_auto_off
+          # Send notifications that the printing has completed, and the power
+          # will be shut off in the configured time
+          - action: script.ha_mobile_notification
+            data:
+              title: "3D Printing is completed"
+              message: "Printer power off countdown: {{ state_attr('timer.3d_printer_auto_off', 'duration') }}"
+              priority: Critical
+              target:
+                - person_1
+        else:
+          # Send notifications that the printing has completed, but auto
+          # power off is disabled
+          - action: script.ha_mobile_notification
+            data:
+              title: "3D Printing is completed"
+              message: "Auto power off is disabled"
+              target:
+                - person_1
+
+  # ---------------------------------------------------------------------------
+  # When the 3D printer auto off functionaly is toggled off.
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - alias: 3D Printer - Auto Off Toggled
+    id: 3d_printer_auto_off_toggled
+    description: "When the 3D printer auto off trigger is toggled."
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: input_boolean.3d_printer_auto_off
+        from: "on"
+        to: "off"
+    action:
+      # Cancel the auto off timer
+      - action: timer.cancel
+        target:
+          entity_id: timer.3d_printer_auto_off
+      # Notify users that the 3D printer auto off teature has been disabled
+      - action: script.ha_mobile_notification
+        data:
+          title: "3D Printer - Auto Off Disabled"
+          message: "The 3D printer will not shut off automatically."
+          target:
+            - person_1
+
+  # ---------------------------------------------------------------------------
+  # When the 3D printer pauses send a notification.
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  #  - binary_sensor.octoprint_printing (INT OctoPprint)
+  # ---------------------------------------------------------------------------
+  - alias: 3D Printer - Printing Paused Notification
+    id: 3d_printer_printing_paused_notification
+    description: "When the 3D printer pauses send a notification."
+    mode: single
+    triggers:
+      # When the printer has completed printing
+      - trigger: state
+        entity_id:
+          - sensor.octoprint_current_state
+        to: "Pausing"
+    action:
+      # Send notifications that the printing has completed, and the power
+      # will be shut off in the configured time
+      - action: script.ha_mobile_notification
+        data:
+          title: "3D Printing is Paused"
+          message: "The 3D printer is paused and needs attention."
+          priority: Critical
+          target:
+            - person_1
+
+  # ---------------------------------------------------------------------------
+  # Turn off the printer when the timer expires
+  #
+  # Dependencies:
+  #  -  switch.plug_wp04_relay (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: 3D Printer - Timer Completed Power Off
+    id: 3d_printer_timer_completed_power_off
+    description: "Turn off the printer when the timer expires"
+    mode: single
+    # When the timer expires
+    triggers:
+      - trigger: state
+        entity_id: timer.3d_printer_auto_off
+        to: "idle"
+    # If auto off is enabled
+    conditions:
+      condition: state
+      entity_id: input_boolean.3d_printer_auto_off
+      state: "on"
+    # Then turn the printer off
+    action:
+      - action: switch.turn_off
+        entity_id: switch.plug_wp04_relay

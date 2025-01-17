@@ -1,0 +1,117 @@
+# *****************************************************************************
+# House Package - This package represents anything that is considered to span
+#     the whole house.
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - UI Helper: A helper configured in the Home Assistant User Interface
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+schedule:
+  house_awake:
+    name: Schedule - House Awake
+    icon: mdi:timer-outline
+    monday:
+      - from: "06:00:00"
+        to: "23:00:00"
+    tuesday:
+      - from: "06:00:00"
+        to: "23:00:00"
+    wednesday:
+      - from: "06:00:00"
+        to: "23:00:00"
+    thursday:
+      - from: "06:00:00"
+        to: "23:00:00"
+    friday:
+      - from: "06:00:00"
+        to: "23:00:00"
+    saturday:
+      - from: "08:30:00"
+        to: "23:00:00"
+    sunday:
+      - from: "08:30:00"
+        to: "23:00:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # This binary sensor uses a schedule helper to determine if the house should
+  # be considered awake
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: House Awake
+        unique_id: house_awake
+        state: >
+          {{ states('schedule.house_awake') }}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When the house wakes up, run and around and set a default Alexa volume
+  # for the day.
+  #
+  # Dependencies:
+  #  - script.amazon_device_announcement (HA script)
+  #  - media_player.* (INT HACS Alexa Media Player)
+  # ---------------------------------------------------------------------------
+  - alias: "Global - Set Default Alexa Volume"
+    id: global_set_default_alexa_volume
+    description: "Sets all alexa devices to a preferred volume when the house wakes up"
+    mode: single
+    # When the house is awake
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.house_awake
+        from: "off"
+        to: "on"
+
+    actions:
+      # Set these Alexas to 40%
+      - action: media_player.volume_set
+        data:
+          volume_level: 0.4
+        target:
+          entity_id:
+            # - media_player.alexa_living_room
+            - media_player.alexa_kitchen
+            - media_player.alexa_office
+            - media_player.alexa_main_bedroom
+      # Set these Alexas to 50%
+      - action: media_player.volume_set
+        data:
+          volume_level: 0.5
+        target:
+          entity_id:
+            - media_player.alexa_theater
+      # Set these Alexas to 100%
+      - action: media_player.volume_set
+        data:
+          volume_level: 1.0
+        target:
+          entity_id:
+            - media_player.alexa_garage

@@ -1,0 +1,168 @@
+# *****************************************************************************
+# NameCheap Package - This package is used to manage hosting and DNS services
+#. provided by NameCheap.com
+#.
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+##
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Update all the NameCheap DDNS records to leverage the new IP Address
+  #
+  # Dependencies:
+  #  - sensor.external_ip_address (YAML network_pkg)
+  #  - secrets.yaml
+  # ---------------------------------------------------------------------------
+  - alias: "NameCheap - Update DDNS Records"
+    id: namecheap_update_ddns_records
+    description: "Update all the NameCheap DDNS records to leverage the new IP Address"
+    mode: single
+    triggers:
+      # Whenever the WAN IP Address changes
+      - trigger: state
+        entity_id: sensor.external_ip_address
+      # Also run at 6:30a daily
+      - trigger: time
+        at: "06:30:00"
+    condition:
+      not:
+        # The external_ip_address is NOT unavailable
+        - condition: state
+          entity_id: sensor.external_ip_address
+          state: "unavailable"
+    action:
+      # Update all the DDNS entries I host here from NameCheap
+      # The "host" and "domain" names to update are stored in the secrets.yaml file
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_1_a
+          domain: !secret namecheap_domain_1
+          password: !secret namecheap_passwd_1
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_a
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_b
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_c
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_d
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_e
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_f
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_2_g
+          domain: !secret namecheap_domain_2
+          password: !secret namecheap_passwd_2
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_3_a
+          domain: !secret namecheap_domain_3
+          password: !secret namecheap_passwd_3
+      - delay:
+          seconds: 1
+      - action: script.namecheap_dns_updater
+        data_template:
+          host: !secret namecheap_host_3_b
+          domain: !secret namecheap_domain_3
+          password: !secret namecheap_passwd_3
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SCRIPTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+script:
+  # ---------------------------------------------------------------------------
+  # This script manages a call to update a DDNS entry at NameCheap.com
+  #
+  # Params
+  #  - host (string):   Then host name to update (i.e. "@", "www", "staging")
+  #  - domain (string): The domain name to pudate (i.e. "mydomain.com")
+  #
+  # For usage details, please read:
+  #   https://www.namecheap.com/support/knowledgebase/article.aspx/29/11/how-to-dynamically-update-the-hosts-ip-with-an-https-request/
+  #
+  #  Dependencies:
+  #  - secrets.yaml
+  # ---------------------------------------------------------------------------
+  namecheap_dns_updater:
+    alias: "NameCheap - DDNS Updater"
+    sequence:
+      - variables:
+          namecheap_host: "{{ host }}"
+          namecheap_domain: "{{ domain }}"
+          namecheap_password: "{{ password }}"
+          namecheap_url: https://dynamicdns.park-your-domain.com/update?host={{ namecheap_host }}&domain={{ namecheap_domain }}&password={{ namecheap_password }}
+      - action: rest_command.namecheap_update_ddns
+        data:
+          namecheap_ddns_url: "{{ namecheap_url }}"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# REST COMMANDS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rest_command:
+  # ---------------------------------------------------------------------------
+  # This rest_command us used to post a get request to the provided URL
+  #
+  # Params
+  #  - namecheap_ddns_url (string):  The URL to pust a GET method to
+  #
+  #  Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  namecheap_update_ddns:
+    url: "{{ namecheap_ddns_url }}"
+    method: get
+    verify_ssl: false

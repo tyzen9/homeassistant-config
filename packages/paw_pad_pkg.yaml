@@ -1,0 +1,147 @@
+# *****************************************************************************
+# Paw Pad Package - This package represents anything used to make the paw pad
+#  (or dog button) functional
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - UI Helper: A helper configured in the Home Assistant User Interface
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+timer:
+  paw_pad:
+    name: Timer - Paw Pad
+    icon: mdi:timer-outline
+    duration: "01:00:10"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When the Paw Pad is pressed, if the pad is enabled make an announcement to
+  #  the house that a dog is ready to be let outside
+  #
+  # Dependencies:
+  #  - script.amazon_device_announcement (HA script)
+  #  - binary_sensor.paw_pad* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Paw Pad - Button Pressed
+    id: paw_pad_button_pressed
+    description: "Actions to take when a paw pad is pressed"
+    mode: single
+    max_exceeded: silent
+    # When the pad senses a touch
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.paw_pad_esp01_touch_pad
+        to: "on"
+    # If the paw pad's light is on, then the button is enabled
+    condition:
+      condition: state
+      entity_id: light.paw_pad_esp01_rgb_led
+      state: "on"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "It's time to let the dog outside"
+          volume: Normal
+          announcement: true
+          only_house_awake: true
+          target:
+            - group.alexa_inside
+      # Do not recognize another pad press for a set amount of time
+      - delay:
+          minutes: 1
+
+  # ---------------------------------------------------------------------------
+  # When the Paw Pad light is turned off, then the button is disabled. Starting
+  # the timer helper will disable the button for a certain amount of time
+  #
+  # Dependencies:
+  #  - timer.* (UI helper)
+  #  - binary_sensor.paw_pad_* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Paw Pad - Timer Start
+    id: paw_pad_timer_start
+    description: "Start the timer for the disabled paw pad"
+    mode: single
+    trigger:
+      # When the light in the Paw Pad is turned off, the button is disabled
+      - platform: state
+        entity_id: light.paw_pad_esp01_rgb_led
+        from: "on"
+        to: "off"
+    action:
+      # Start the timer helper for the disable duration
+      - action: timer.start
+        target:
+          entity_id: timer.paw_pad
+
+  # ---------------------------------------------------------------------------
+  # When the Paw Pad light is turned on, then the button is re-enabled.
+  # Canceling the timer helper will make the button function again
+  #
+  # Dependencies:
+  #  - timer.* (UI helper)
+  #  - binary_sensor.paw_pad_* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Paw Pad - Timer Cancel
+    id: paw_pad_timer_cancel
+    description: "Cancel the timer for the disabled Paw Pad"
+    mode: single
+    trigger:
+      # When the light in the Paw Pad is turned back on
+      - platform: state
+        entity_id: light.paw_pad_esp01_rgb_led
+        from: "off"
+        to: "on"
+    action:
+      # Cancel the timer, thus re-enableing the button
+      - action: timer.cancel
+        target:
+          entity_id: timer.paw_pad
+
+  # ---------------------------------------------------------------------------
+  # When the Paw Pad timer expires, the light is turned on and then the button
+  #  is re-enabled.
+  #
+  # Dependencies:
+  #  - timer.* (UI helper)
+  #  - binary_sensor.paw_pad_* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Paw Pad - Timer Finished
+    id: paw_pad_timer_finished
+    description: "The timer for the disabled Paw Pad has ended"
+    mode: single
+    trigger:
+      # When the timer completes
+      - platform: state
+        entity_id: timer.paw_pad
+        to: "idle"
+    action:
+      # Turn the Paw Pad light back on, enabling the button
+      - action: light.turn_on
+        target:
+          entity_id: light.paw_pad_esp01_rgb_led

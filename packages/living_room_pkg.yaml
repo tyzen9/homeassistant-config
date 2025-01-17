@@ -1,0 +1,265 @@
+# *****************************************************************************
+# Living Room Package - This package is for all the Living Room things
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - UI Helper: A helper configured in the Home Assistant User Interface
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - WLED: https://www.home-assistant.io/integrations/wled/
+#   - Zigbee: https://www.home-assistant.io/integrations/zha
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_boolean:
+  living_room_motion_lighting_enabled:
+    name: Toggle - Living Room Motion Lighting Enabled
+    icon: mdi:motion-sensor
+
+timer:
+  living_room_accent_lights:
+    name: Timer - Living Room Accent Lights
+    icon: mdi:timer-outline
+    duration: "00:30:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # This trigger based template sensor tracks the last time the living room
+  # light switch was turned off. This is used to provide a physical means to
+  # control the scenes that are used in the main lamp in an automation below
+  #
+  # Dependencies:
+  #  - light.dimmer_wd01_dimmer (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      # When the light moves to an "off" state
+      - trigger: state
+        entity_id: light.dimmer_wd01_dimmer
+        from: "on"
+        to: "off"
+      # Record the current timestamp
+    sensor:
+      - name: "Dimmer Living - Room Last Off"
+        unique_id: dimmer_living_room_last_off
+        device_class: timestamp
+        state: "{{ now() }}"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Turn on the RGBW light bulbe in the tall living lamp using difference scenes
+  # based on the time of day, and "quick" flips of the switch
+  #
+  # NOTE: This is a "disconnected" switch controlling RGBW lights. Action must
+  #   must control the bulbs themselves
+  #
+  # Dependencies:
+  #  - scene.* (UI Scene)
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  #  - light.zl* (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Living Room - Tall Lamp On
+    id: living_room_tall_lamp_on
+    description: "Turns on the living room tall lamp bulbs"
+    mode: single
+    triggers:
+      # When the dimmer button is pressed
+      - trigger: state
+        entity_id: light.dimmer_wd01_dimmer
+        from: "off"
+        to: "on"
+    action:
+      - if:
+          # If the switch is turned off then on in under 3 seconds
+          - condition: template
+            value_template: '{{ as_timestamp(now()) -  as_timestamp( states("sensor.dimmer_living_room_last_off"), float(0)) < 3 }}'
+        # Set the light to the highest brightness using a scene
+        then:
+          - action: scene.turn_on
+            target:
+              entity_id: scene.livingroom_floorlamp_bright
+        # Otherwise, if ths light switch was not quickly turned off/on
+        else:
+          - if:
+              # If the sun is up
+              - alias: "The sun is up"
+                condition: state
+                entity_id: sun.sun
+                state: "above_horizon"
+            then:
+              # Then activate the daylight scene
+              - action: scene.turn_on
+                target:
+                  entity_id: scene.livingroom_lamp_morning
+            else:
+              # Otherwise, activate the evening scene
+              - action: scene.turn_on
+                target:
+                  entity_id: scene.livingroom_lamp_evening
+      # In any case, set the light switch's dimmer brightness based on the
+      # brightness of the top light in the lamp
+      - action: light.turn_on
+        entity_id: light.dimmer_wd01_dimmer
+        data:
+          brightness: "{{ state_attr('light.zl5', 'brightness') }}"
+
+  # ---------------------------------------------------------------------------
+  # Turn off the RGBW light bulbs in the living room tall lamp
+  #
+  # NOTE: This is a "disconnected" switch controlling RGBW lights. Action must
+  #   must control the bulbs themselves
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  #  - light.zl* (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Living Room - Tall Lamp Off
+    id: living_room_tall_lamp_off
+    description: "Turns off the living room tall lamp bulbs"
+    mode: single
+    triggers:
+      # When the switchs moves from on to off
+      - trigger: state
+        entity_id: light.dimmer_wd01_dimmer
+        from: "on"
+        to: "off"
+    action:
+      # Turn off the LED bulbs
+      - action: light.turn_off
+        target:
+          entity_id:
+            - light.zl5
+
+  # ---------------------------------------------------------------------------
+  # Adjust the brightness of the RGBW light bulbs in the living room tall lamp
+  #
+  # NOTE: This is a "disconnected" switch controlling RGBW lights. Action must
+  #   must control the bulbs themselves
+  #
+  # Dependencies:
+  #  - light.dimmer_wd*_dimmer (INT ESPHome)
+  #  - light.zl* (INT Zigbee)
+  # ---------------------------------------------------------------------------
+  - alias: Living Room - Tall Lamp Adjust Brightness
+    id: living_room_tall_lamp_adj_brightness
+    description: "Adjustment to the brightness of the living room tall lamp"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the switch's brightness attribute changes
+      - trigger: state
+        entity_id: light.dimmer_wd01_dimmer
+        attribute: brightness
+    conditions:
+      - and:
+          # Dont do aything if the dimmer switch is not "on"
+          - condition: state
+            entity_id: light.dimmer_wd01_dimmer
+            state: "on"
+          # Dont do aything if the previous state was "unavailable"
+          - condition: template
+            value_template: '{{ trigger.from_state.state != "unavailable" }}'
+    action:
+      # The conditions allow for only adjusting the brightness of the bulb(s) that
+      # are in an on state.  An off bulb's brightness should not be adjusted
+      - if:
+          # If this bulb is on
+          - condition: state
+            entity_id: light.zl5
+            state: "on"
+        then:
+          # Adjust its brightness
+          - action: light.turn_on
+            entity_id: light.zl5
+            data:
+              brightness: "{{ int(state_attr('light.dimmer_wd01_dimmer', 'brightness')) | int(155) }}"
+
+  # ---------------------------------------------------------------------------
+  # Turn on accent lights in the living room when motion detection occurs
+  #
+  # Dependencies:
+  #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
+  #  - light.rgbw_livingroom_entcenter (INT Shelly)
+  #  - light.wled_livingroom_desk (INT WLED)
+  # ---------------------------------------------------------------------------
+  - alias: Living Room - Motion Decected Lighting On
+    id: living_room_motion_detected_lighting_on
+    description: "Turn on accent lights in the living room when motion detection occurs"
+    mode: single
+    triggers:
+      # When a motion sensor detects motion
+      - trigger: state
+        entity_id: binary_sensor.motion_livingroom_iaszone
+        to: "on"
+    conditions:
+      # If motion detected lighting is enabled
+      condition: state
+      entity_id: input_boolean.living_room_motion_lighting_enabled
+      state: "on"
+    action:
+      # Anytime a trigger trips, reset and start the lighting timer
+      - action: timer.start
+        target:
+          entity_id:
+            - timer.living_room_accent_lights
+      # Turn on the living room accent lighting
+      - action: light.turn_on
+        target:
+          entity_id:
+          #  - light.rgbw_livingroom_entcenter
+            - light.wled_livingroom_desk
+
+  # ---------------------------------------------------------------------------
+  # Turn off accent lights in the living room when the motion lights timer
+  # expires
+  #
+  # Dependencies:
+  #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
+  #  - light.rgbw_livingroom_entcenter (INT Shelly)
+  #  - light.wled_livingroom_desk (INT WLED)
+  # ---------------------------------------------------------------------------
+  - alias: Living Room - Motion Decected Lighting Off
+    id: living_room_motion_detected_lighting_off
+    description: "Turn off accent lights in the living room when motion detection expires"
+    mode: single
+    triggers:
+      # When the motion detected lighting timer expires
+      - trigger: state
+        entity_id: timer.living_room_accent_lights
+        to: "idle"
+    conditions:
+      # If motion detected lighting is enabled
+      condition: state
+      entity_id: input_boolean.living_room_motion_lighting_enabled
+      state: "on"
+    action:
+      # Turn off the living room accent lighting
+      - action: light.turn_off
+        target:
+          entity_id:
+          #  - light.rgbw_livingroom_entcenter
+            - light.wled_livingroom_desk

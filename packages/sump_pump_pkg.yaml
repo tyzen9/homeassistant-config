@@ -1,0 +1,283 @@
+# *****************************************************************************
+# Sump Pump Package - All things related to the sump pumps in the basement.
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - YAML notify: https://www.home-assistant.io/integrations/notify/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # These binary sensors are used to monitor connectivity to the sump pumps.
+  # This is done by monitoring the status of the smart plugs that the
+  # pumps are connected to.
+  #
+  # Dependencies:
+  #  - sensor.plug_wp* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Sump Pump 1 - Connected
+        unique_id: sump_pump_1_connected
+        device_class: connectivity
+        # If the plug is in a state where we do not know if the pump can be
+        # monitored, then we have a connectivity problem!
+        state: >
+          {{ states('sensor.plug_wp03_power') != 'unavailable' 
+              or states('sensor.plug_wp03_power') != 'unknown'
+              or states('switch.plug_wp03_relay') != 'off' }}
+        icon: >
+          {% if is_state("binary_sensor.sump_pump_1_connected", "on") %}
+            mdi:pump
+          {% else %}
+            mdi:pump-off
+          {% endif %}
+
+  - binary_sensor:
+      - name: Sump Pump 2 - Connected
+        unique_id: sump_pump_2_connected
+        device_class: connectivity
+        # If the plug is in a state where we do not know if the pump can be
+        # monitored, then we have a connectivity problem!
+        state: >
+          {{ states('sensor.plug_wp08_power') != 'unavailable' 
+              or states('sensor.plug_wp08_power') != 'unknown'
+              or states('switch.plug_wp08_relay') != 'off' }}
+        icon: >
+          {% if is_state("binary_sensor.sump_pump_2_connected", "on") %}
+            mdi:pump
+          {% else %}
+            mdi:pump-off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # These binary sensors are used to monitor when the pumps are running. This
+  # is done by simply measuring its power consumption.  If power is being
+  # consumed, then a pump is running.
+  #
+  # Dependencies:
+  #  - sensor.plug_wp* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Sump Pump 1 - Running
+        unique_id: sump_pump_1_running
+        icon: mdi:pump
+        state: >
+          {{ states('sensor.plug_wp03_power')|float(0) > 0 }}
+
+  - binary_sensor:
+      - name: Sump Pump 2 - Running
+        unique_id: sump_pump_2_running
+        icon: mdi:pump
+        state: >
+          {{ states('sensor.plug_wp08_power')|float(0) > 0 }}
+
+  # ---------------------------------------------------------------------------
+  # These binary sensors are used to monitor when a pump is running longer
+  # than it should be. If power is being consumed for more than 30 seconds,
+  # then it is likely that we have a faulty pump
+  #
+  # Dependencies:
+  #  - sensor.plug_wp* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Sump Pump 1 - Running Long
+        unique_id: sump_pump_1_runninglong
+        icon: mdi:pump
+        state: >
+          {{ states('sensor.plug_wp03_power')|float(0) > 0 }}
+        delay_on:
+          seconds: 30
+
+  - binary_sensor:
+      - name: Sump Pump 2 - Running Long
+        unique_id: sump_pump_2_runninglong
+        icon: mdi:pump
+        state: >
+          {{ states('sensor.plug_wp08_power')|float(0) > 0 }}
+        delay_on:
+          seconds: 30
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ALERTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alert:
+  # ---------------------------------------------------------------------------
+  # Sends an alert if the connectivity to one of the Sump Pump smart outlets
+  # are disrupted
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  sump_pump_1_disconnected:
+    name: Sump Pump 1 - Disconnected
+    entity_id: binary_sensor.sump_pump_1_connected
+    state: "off"
+    skip_first: false
+    repeat:
+      - 30
+      - 60
+      - 90
+      - 120
+      - 240
+    title: "Sump Pump 1 Disconnected"
+    message: 'The smart plug power mode is "{{ states.switch.plug_wp03_relay.state }}" and needs addressed immediatly.'
+    done_message: 'RESOLVED: The smart plug is now "{{ states.switch.plug_wp03_relay.state }}".'
+    notifiers:
+      - critical_message
+
+  sump_pump_2_disconnected:
+    name: Sump Pump 2 - Disconnected
+    entity_id: binary_sensor.sump_pump_2_connected
+    state: "off"
+    skip_first: false
+    repeat:
+      - 30
+      - 60
+      - 90
+      - 120
+      - 240
+    title: "Sump Pump 1 Disconnected"
+    message: 'The smart plug power mode is "{{ states.switch.plug_wp08_relay.state }}" and needs addressed immediatly.'
+    done_message: 'RESOLVED: The smart plug is now "{{ states.switch.plug_wp08_relay.state }}".'
+    notifiers:
+      - critical_message
+
+  # ---------------------------------------------------------------------------
+  # Sends an alert if the one of the Sump Pumps are running longer than
+  # considered to be normal
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  sump_pump_1_runaway:
+    name: Sump Pump 1 - Runaway
+    entity_id: binary_sensor.sump_pump_1_runninglong
+    state: "on"
+    skip_first: false
+    repeat:
+      - 10
+      - 20
+      - 30
+      - 60
+    title: "Sump Pump 1 Runaway"
+    message: "Sump Pump 1 has been running non-stop for {{ relative_time(states.binary_sensor.sump_pump_1_running_long.last_changed) }}."
+    done_message: "RESOLVED: Sump Pump 1 has stopped."
+    notifiers:
+      - critical_message
+
+  sump_pump_2_runaway:
+    name: Sump Pump 2 - Runaway
+    entity_id: binary_sensor.sump_pump_2_runninglong
+    skip_first: false
+    state: "on"
+    repeat:
+      - 10
+      - 20
+      - 30
+      - 60
+    title: "Sump Pump 2 Runaway"
+    message: "Sump Pump 2 has been running non-stop for {{ relative_time(states.binary_sensor.sump_pump_2_running_long.last_changed) }}."
+    done_message: "RESOLVED: Sump Pump 1 has stopped."
+    notifiers:
+      - critical_message
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HISTORY STATS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Note: History stats are only kept for the recorder's set purge_keep_days,
+# this is 7 days by default. To move these stats to Long Term Statistics (LTS)
+# we will use a "Utility Meter" below.
+sensor:
+  # ---------------------------------------------------------------------------
+  # These history stats track how many times each pump runs in 24 hours.
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - platform: history_stats
+    name: History - Sump Pump 1 Cycles
+    unique_id: history_sump_pump_1_cycles
+    entity_id: binary_sensor.sump_pump_1_running
+    state: "on"
+    type: count
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+  - platform: history_stats
+    name: History - Sump Pump 2 Cycles
+    unique_id: history_sump_pump_2_cycles
+    entity_id: binary_sensor.sump_pump_2_running
+    state: "on"
+    type: count
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+  # ---------------------------------------------------------------------------
+  # These history stats track how long each pump runs in 24 hours.
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - platform: history_stats
+    name: History - Sump Pump 1 Runtime
+    entity_id: binary_sensor.sump_pump_1_running
+    state: "on"
+    type: time
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+  - platform: history_stats
+    name: History - Sump Pump 2 Runtime
+    entity_id: binary_sensor.sump_pump_2_running
+    state: "on"
+    type: time
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# UTILITY METERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+utility_meter:
+  # ---------------------------------------------------------------------------
+  # These utility meters allow for the long term statistics gathering of how
+  # many times each pump runs per day.  We will use these stats on the
+  # dashboard when displaying graphs/metrics
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  meter_sump_pump_1_cycles:
+    name: Meter - Sump Pump 1 Cycles
+    unique_id: meter_sump_pump_1_cycles
+    source: sensor.history_sump_pump_1_cycles
+    cycle: daily
+    always_available: true
+
+  meter_sump_pump_2_cycles:
+    name: Meter - Sump Pump 2 Cycles
+    unique_id: meter_sump_pump_2_cycles
+    source: sensor.history_sump_pump_2_cycles
+    cycle: daily
+    always_available: true

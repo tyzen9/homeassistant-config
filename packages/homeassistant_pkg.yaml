@@ -1,0 +1,56 @@
+# *****************************************************************************
+# Home Assistant Package - This package represents things that are specific
+#  to Home Assistant istself
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - HA script: https://www.home-assistant.io/integrations/script/
+#   - HACS Alexa Media Player: https://github.com/alandtse/alexa_media_player
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When Home Assistant starts, make a quiet announcement in the Living Room
+  #
+  # Dependencies:
+  #  - script.amazon_device_announcement (HA script)
+  #  - media_player.alexa_* (INT HACS Alexa Media Player)
+  # ---------------------------------------------------------------------------
+  - alias: HA - Startup Announcement
+    id: ha_startup_announcement
+    description: "Quiet Announcement when Home Assistant is started/restarted"
+    mode: single
+    # When Home Assistant Starts
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "Home Assistant has restarted"
+          volume: Whisper
+          announcement: false
+          only_house_awake: false
+          target:
+            - media_player.alexa_office

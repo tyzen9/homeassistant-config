@@ -1,0 +1,133 @@
+# *****************************************************************************
+# WLED Utilities Package - This is a collection of utilities used for the 
+#   controlling of WLED strips
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# *****************************************************************************
+
+script:
+  # ---------------------------------------------------------------------------
+  # This script builds the http request required to turn off a WLED strip's
+  #   master power, and then calls the appropriate rest command to make the call
+  #
+  # Params
+  #  - hostname (string):  Then hostname or IP Address of the WLED strip to
+  #                        interact with (i.e. "wled.local","192.168.1.2")
+  #
+  # External Package Dependencies: (none)
+  # ---------------------------------------------------------------------------
+  wled_off:
+    alias: "WLED - Power Off"
+    icon: mdi:led-strip-variant-off
+    description: "Turn off a WLED strip's master power"
+    mode: single
+    max_exceeded: silent
+    fields:
+      wled_hostname:
+        name: "WLED Hostname"
+        description: "The hostname or IP Address of the WLED instance"
+        required: true
+        selector:
+          text:
+    sequence:
+      - variables:
+          api_url: http://{{ wled_hostname }}/win&T=0
+      - action: rest_command.wled_api_call
+        data:
+          wled_api_url: "{{ api_url }}"
+
+  # ---------------------------------------------------------------------------
+  # This script builds the http request required to turn on a WLED strip's
+  #   master power, and then calls the appropriate rest command to make the call
+  #
+  # Params
+  #  - hostname (string):  Then hostname or IP Address of the WLED strip to
+  #                        interact with (i.e. "wled.local","192.168.1.2")
+  #
+  # External Package Dependencies: (none)
+  # ---------------------------------------------------------------------------
+  wled_on:
+    alias: "WLED - Power On"
+    icon: mdi:led-strip-variant-on
+    description: "Turn on a WLED strip's master power"
+    mode: single
+    max_exceeded: silent
+    fields:
+      wled_hostname:
+        name: "WLED Hostname"
+        description: "The hostname or IP Address of the WLED instance"
+        required: true
+        selector:
+          text:
+    sequence:
+      - variables:
+          api_url: http://{{ wled_hostname }}/win&T=1
+      - action: rest_command.wled_api_call
+        data:
+          wled_api_url: "{{ api_url }}"
+
+  # ---------------------------------------------------------------------------
+  # This script builds the http request required to toggle on a WLED strip's
+  #   master power, and then calls the appropriate rest command to make the call
+  #
+  # Params
+  #  - hostname (string):  Then hostname or IP Address of the WLED strip to
+  #                        interact with (i.e. "wled.local","192.168.1.2")
+  #
+  # External Package Dependencies: (none)
+  # ---------------------------------------------------------------------------
+  wled_toggle:
+    alias: "WLED - Power Toggle"
+    icon: mdi:led-strip-variant-on
+    description: "Toggle a WLED strip's master power"
+    mode: single
+    max_exceeded: silent
+    fields:
+      wled_hostname:
+        name: "WLED Hostname"
+        description: "The hostname or IP Address of the WLED instance"
+        required: true
+        selector:
+          text:
+    sequence:
+      - variables:
+          api_url: http://{{ wled_hostname }}/win&T=2
+      - action: rest_command.wled_api_call
+        data:
+          wled_api_url: "{{ api_url }}"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# REST COMMANDS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rest_command:
+  # ---------------------------------------------------------------------------
+  # This rest_command us used to post a get request to a WLED controller
+  #
+  # For usage details, please read:
+  #   https://kno.wled.ge/interfaces/http-api/
+  #
+  # Params
+  #  - wled_api_url (string):  The URL to get
+  #
+  # External Package Dependencies: (none)
+  # ---------------------------------------------------------------------------
+  wled_api_call:
+    url: "{{ wled_api_url }}"
+    method: get
+    verify_ssl: false

@@ -1,0 +1,330 @@
+# *****************************************************************************
+# Laundry Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+counter:
+  dryer_vibrations:
+    name: Counter - The number of dryer vibrations
+    icon: mdi:counter
+    initial: 0
+    step: 1
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # This binary sensor will monitors if the washing machine is running. This is
+  # determined by the amoount of power it is consuming
+  #
+  # Dependencies:
+  #  - sensor.relaypm_laundryroom_washer_power (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Laundry - Washing Machine Running
+        unique_id: laundry_washing_machine_running
+        # If the washing machine is consuming more than the set Watts
+        state: >
+          {{ states('sensor.relaypm_laundryroom_washer_power')|float(0) > 4 }}
+        # Make sure the power consumption holds here for a this duration before
+        # turning the sensor on
+        delay_on:
+          seconds: 5
+        delay_off:
+          minutes: 1
+        icon: >
+          {% if is_state("binary_sensor.laundry_washing_machine_running", "on") %}
+            mdi:washing-machine
+          {% else %}
+            mdi:washing-machine-off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # This binary sensor will monitors if the tumble dryer is running. This is
+  # determined by the temperature sensed in the dryer's exhause vent
+  #
+  # Dependencies:
+  #  - sensor.relaypm_laundryroom_washer_power (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Laundry - Tumble Dryer Running
+        unique_id: laundry_tumble_dryer_running
+        # If the dryer is vibrating, then its running
+        state: >
+          {{ states('sensor.tumbledryer_exhaust_temperature')|int(0) > 80 }}
+        delay_on:
+          seconds: 5
+        delay_off:
+          minutes: 10
+        icon: >
+          {% if is_state("binary_sensor.laundry_tumble_dryer_running", "on") %}
+            mdi:tumble-dryer
+          {% else %}
+            mdi:tumble-dryer-off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # This trigger based template sets a binary binary sensors that indicates
+  # if the washer is waiting on the dryer. This sensor is triggered when the
+  # washer or dryer stop running
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      # When the washing machine stops running
+      - trigger: state
+        entity_id: binary_sensor.laundry_washing_machine_running
+        from: "on"
+        to: "off"
+      # When the tumble dryer stops running
+      - trigger: state
+        entity_id: binary_sensor.laundry_tumble_dryer_running
+        from: "on"
+        to: "off"
+    # Evaluate the sensor values
+    binary_sensor:
+      - name: "Laundry - Washing Machine Waiting"
+        unique_id: laundry_washing_machine_waiting
+        # If the dryer is running, then the washing machine is in a wait state
+        # If the dryer stopped running, then the waiting period is over
+        state: >
+          {% if is_state("binary_sensor.laundry_tumble_dryer_running", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # This trigger based template sets a binary binary sensors that indicates
+  # if the dryer is waiting on the washer. This sensor is triggered when the
+  # washer or dryer stop running
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      # When the tumble dryer stops running
+      - trigger: state
+        entity_id: binary_sensor.laundry_tumble_dryer_running
+        from: "on"
+        to: "off"
+      # When the washing machine stops running
+      - trigger: state
+        entity_id: binary_sensor.laundry_washing_machine_running
+        from: "on"
+        to: "off"
+    # Evaluate the sensor values
+    binary_sensor:
+      - name: "Laundry - Tumble Dryer Waiting"
+        unique_id: laundry_tumble_dryer_waiting
+        # If the dryer is running, then the washing machine is in a wait state
+        # If the dryer stopped running, then the waiting period is over
+        state: >
+          {% if is_state("binary_sensor.laundry_washing_machine_running", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # These are the sensors used to track the "English" state of the washing
+  # machine and tumble dryer. These will use "on", "off" and "wait" to indicate
+  # what phase the device is in.
+  #
+  # NOTE: A time_pattern trigger and an attribut is used in these sensors in
+  #       order to make sure the sensor updates regurlarly.  This will all for
+  #       the use of the last_updated time in the
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      - trigger: time_pattern
+        seconds: "/30"
+    sensor:
+      - name: "Laundry - Tumble Dryer State"
+        unique_id: laundry_tumble_dryer_state
+        # If the dryer is running, then the washing machine is in a wait state
+        # If the dryer stopped running, then the waiting period is over
+        state: >
+          {% if is_state("binary_sensor.laundry_tumble_dryer_waiting", "on") %}
+            wait
+          {% else %}
+            {{ states("binary_sensor.laundry_tumble_dryer_running")  }}
+          {% endif %}
+        attributes:
+          update_timestamp:: "{{ now() }}"
+
+  - trigger:
+      - trigger: time_pattern
+        seconds: "/30"
+    sensor:
+      - name: "Laundry - Washing Machine State"
+        unique_id: laundry_washing_machine_state
+        # If the washer is running, then the dryer is in a wait state
+        # If the washer stopped running, then the waiting period is over
+        state: >
+          {% if is_state("binary_sensor.laundry_washing_machine_waiting", "on") %}
+            wait
+          {% else %}
+            {{ states("binary_sensor.laundry_washing_machine_running")  }}
+          {% endif %}
+        attributes:
+          update_timestamp:: "{{ now() }}"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  - alias: "Laundry - Completed Announcement"
+    id: laundry_completed_announcement
+    description: "An announcement to make when the laundry cycle is completed"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id:
+          - sensor.laundry_washing_machine_state
+        not_from:
+          - "unknown"
+          - "unavailable"
+        to: "off"
+      - trigger: state
+        entity_id:
+          - sensor.laundry_tumble_dryer_state
+        not_from:
+          - "unknown"
+          - "unavailable"
+        to: "off"
+    conditions:
+      - and:
+          - condition: state
+            entity_id: sensor.laundry_washing_machine_state
+            state: "off"
+          - condition: state
+            entity_id: sensor.laundry_tumble_dryer_state
+            state: "off"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "The laundry is ready to be rotated."
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+            #- media_player.alexa_living_room
+
+  - alias: Counting Dryer
+    trigger:
+      - trigger: state
+        entity_id: binary_sensor.tumbledryer_vibration
+        to: "on"
+    action:
+      action: counter.increment
+      target:
+        entity_id: counter.dryer_vibrations
+
+  - alias: Dryer Complete
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.tumbledryer_vibration
+        to: "off"
+        for: "00:02:00"
+    conditions:
+      - condition: template
+        value_template: "{{states('counter.dryer_vibrations')|int > 15}}"
+    actions:
+      - action: counter.reset
+        target:
+          entity_id: counter.dryer_vibrations
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HISTORY STATS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Note: History stats are only kept for the recorder's set purge_keep_days,
+# this is 7 days by default. To move these stats to Long Term Statistics (LTS)
+# we will use a "Utility Meter" below.
+sensor:
+  # ---------------------------------------------------------------------------
+  # This history stats track how many times the washing machine and the tumble
+  # dryer ran in the past 24 hours.
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - platform: history_stats
+    name: History - Laundry Washing Machine Cycles
+    unique_id: history_laundry_washing_machine_cycles
+    entity_id: binary_sensor.laundry_washing_machine_running
+    state: "on"
+    type: count
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+  - platform: history_stats
+    name: History - Laundry Tumble Dryer Cycles
+    unique_id: history_laundry_tumble_dryer_cycles
+    entity_id: binary_sensor.laundry_tumble_dryer_running
+    state: "on"
+    type: count
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+  - platform: statistics
+    name: "Dryer tumbledryer temp change over 2 minutes"
+    entity_id: sensor.tumbledryer_exhaust_temperature
+    state_characteristic: change
+    max_age:
+      minutes: 2
+    sampling_size: 50
+    precision: 1
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# UTILITY METERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+utility_meter:
+  # ---------------------------------------------------------------------------
+  # These utility meters allow for the long term statistics gathering of how
+  # many times each pump runs per day.  We will use these stats on the
+  # dashboard when displaying graphs/metrics
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  laundry_washing_machine_cycles:
+    name: Meter - Laundry Washing Machine Cycles
+    unique_id: meter_laundry_washing_machine_cycles
+    source: sensor.history_laundry_washing_machine_cycles
+    cycle: daily
+    always_available: true
+
+  laundry_tumble_dryer_cycles:
+    name: Meter - Laundry Tumble Dryer Cycles
+    unique_id: meter_laundry_tumble_dryer_cycles
+    source: sensor.history_laundry_tumble_dryer_cycles
+    cycle: daily
+    always_available: true

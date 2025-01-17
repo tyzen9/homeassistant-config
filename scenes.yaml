@@ -1,0 +1,310 @@
+- id: '1681614478824'
+  name: LivingRoom FloorLamp Evening
+  entities:
+    light.zl5:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: color_temp
+      brightness: 254
+      color_temp_kelvin: 2577
+      color_temp: 388
+      hs_color:
+      - 28.679
+      - 69.803
+      rgb_color:
+      - 255
+      - 162
+      - 77
+      xy_color:
+      - 0.538
+      - 0.389
+      off_with_transition: false
+      off_brightness:
+      icon: mdi:floor-lamp-torchiere
+      friendly_name: Light ZL5  (LivingRoom TorchLamp) Light Bulb
+      supported_features: 40
+      state: 'on'
+  metadata: {}
+  icon: mdi:lightbulb-night-outline
+- id: '1681614585218'
+  name: 'LivingRoom FloorLamp Morning '
+  entities:
+    light.zl5:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL5  (LivingRoom TorchLamp) Light Bulb
+      supported_features: 40
+      color_mode: color_temp
+      brightness: 254
+      color_temp_kelvin: 5128
+      color_temp: 195
+      hs_color:
+      - 27.155
+      - 17.532
+      rgb_color:
+      - 255
+      - 230
+      - 210
+      xy_color:
+      - 0.367
+      - 0.348
+      state: 'on'
+  metadata: {}
+  icon: mdi:lightbulb-on-outline
+- id: '1681618351988'
+  name: MainBedroom NightStandLight Dusk
+  entities:
+    light.zl1:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: color_temp
+      brightness: 254
+      hs_color:
+      - 29.378
+      - 79.261
+      rgb_color:
+      - 255
+      - 151
+      - 52
+      xy_color:
+      - 0.567
+      - 0.389
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL1 (MainBedroom NightstandSteve) Light Bulb
+      supported_features: 40
+      color_temp_kelvin: 2325
+      color_temp: 430
+      state: 'on'
+  icon: mdi:lightbulb
+  metadata: {}
+- id: '1681618380333'
+  name: MainBedroom NightStandLight Evening
+  entities:
+    light.zl1:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: xy
+      brightness: 102
+      hs_color:
+      - 299.754
+      - 95.686
+      rgb_color:
+      - 254
+      - 11
+      - 255
+      xy_color:
+      - 0.385
+      - 0.155
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL1 (MainBedroom NightstandSteve) Light Bulb
+      supported_features: 40
+      state: 'on'
+  icon: mdi:lightbulb
+  metadata: {}
+- id: '1681618396847'
+  name: MainBedroom NightStandLight Night
+  entities:
+    light.zl1:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: xy
+      brightness: 2
+      hs_color:
+      - 0
+      - 100
+      rgb_color:
+      - 255
+      - 0
+      - 0
+      xy_color:
+      - 0.700999
+      - 0.298985
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL1 (MainBedroom NightstandSteve) Light Bulb
+      supported_features: 40
+      state: 'on'
+  icon: mdi:lightbulb
+  metadata: {}
+- id: '1682175180254'
+  name: LivingRoom FloorLamp Bright
+  entities:
+    light.zl5:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: color_temp
+      brightness: 254
+      color_temp_kelvin: 2551
+      color_temp: 392
+      hs_color:
+      - 28.743
+      - 70.706
+      rgb_color:
+      - 255
+      - 161
+      - 74
+      xy_color:
+      - 0.541
+      - 0.389
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL5  (LivingRoom TorchLamp) Light Bulb
+      supported_features: 40
+      state: 'on'
+  metadata: {}
+  icon: mdi:lightbulb-on-outline
+- id: '1691685171518'
+  name: LivingRoom Movie Lighting
+  entities:
+    light.zl5:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6493
+      min_mireds: 154
+      max_mireds: 500
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: xy
+      brightness: 254
+      hs_color:
+      - 242.588
+      - 100
+      rgb_color:
+      - 11
+      - 0
+      - 255
+      xy_color:
+      - 0.136
+      - 0.04
+      off_with_transition: false
+      off_brightness:
+      friendly_name: Light ZL5  (LivingRoom TorchLamp) Light Bulb
+      supported_features: 40
+      state: 'on'
+  icon: mdi:lightbulb-on-10
+  metadata: {}
+- id: '1721671510231'
+  name: Network Closet - Bright
+  entities:
+    light.rgbw_theater_closet:
+      effect_list:
+      - 'Off'
+      - Meteor Shower
+      - Gradual Change
+      - Flash
+      supported_color_modes:
+      - rgbw
+      effect: 'Off'
+      color_mode: rgbw
+      brightness: 255
+      hs_color:
+      - 204
+      - 1.961
+      rgb_color:
+      - 250
+      - 253
+      - 255
+      xy_color:
+      - 0.318
+      - 0.327
+      rgbw_color:
+      - 240
+      - 247
+      - 250
+      - 255
+      icon: mdi:led-strip
+      friendly_name: RGBW Theater Closet
+      supported_features: 36
+      state: 'on'
+  icon: mdi:brightness-7
+  metadata: {}
+- id: '1721671646803'
+  name: Network Closet - Red
+  entities:
+    light.rgbw_theater_closet:
+      effect_list:
+      - 'Off'
+      - Meteor Shower
+      - Gradual Change
+      - Flash
+      supported_color_modes:
+      - rgbw
+      effect: 'Off'
+      color_mode: rgbw
+      brightness: 255
+      hs_color:
+      - 0
+      - 100
+      rgb_color:
+      - 255
+      - 0
+      - 0
+      xy_color:
+      - 0.701
+      - 0.299
+      rgbw_color:
+      - 255
+      - 0
+      - 0
+      - 0
+      icon: mdi:led-strip
+      friendly_name: RGBW Theater Closet
+      supported_features: 36
+      state: 'on'
+  icon: mdi:brightness-3
+  metadata: {}
+- id: '1725384752059'
+  name: Daytona Active Meeting
+  entities:
+    light.dimmer_wd07_dimmer:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 26
+      friendly_name: Dimmer WD07 (Office Ceiling Lights) Dimmer
+      supported_features: 40
+      state: 'on'
+    light.dimmer_wd14_dimmer:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 102
+      friendly_name: Dimmer WD14 (Office Bookcase Lights) Dimmer
+      supported_features: 40
+      state: 'on'
+  icon: mdi:microphone-message
+  metadata: {}

@@ -1,0 +1,111 @@
+# *****************************************************************************
+# Exterior Lighting Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - YAML Group: https://www.home-assistant.io/integrations/group/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# GROUPS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+switch:
+  - platform: group
+    name: Exterior - Front Yard Switch Group
+    unique_id: exterior_front_yard_switch_group
+    entities:
+      - switch.relay_frontyard_houseoutlets
+      - switch.relay_frontyard_garagelights
+
+  - platform: group
+    name: Exterior - Back Yard Switch Group
+    unique_id: exterior_back_yard_switch_group
+    entities:
+      - switch.relay_backyard_mandoorlight
+      - switch.relay_backyard_shedwalllights
+      - switch.relay_backyard_porchlights
+
+light:
+  - platform: group
+    name: Exterior - Front Yard Light Group
+    unique_id: exterior_front_yard_light_group
+    entities:
+      - light.dimmer_wd03_dimmer
+      - light.dimmer_wd04_dimmer
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When sun sets, turn on the exterior lights
+  #
+  # Dependencies:
+  #  - light.exterior_front_yard_light_group (YAML group)
+  #  - switch.exterior_*_group (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Exterior Lighting - Turn On
+    id: exterior_lighting_turn_on
+    description: "Turn on the exterior lighting when the sun sets"
+    mode: single
+    triggers:
+      # At sunset
+      - trigger: sun
+        event: sunset
+    actions:
+      # Turn on the front yard lighting light group
+      - action: light.turn_on
+        target:
+          entity_id:
+            - light.exterior_front_yard_light_group
+      # Turn on the outdoor lighting switch groups
+      - action: switch.turn_on
+        target:
+          entity_id:
+            - switch.exterior_back_yard_switch_group
+            - switch.exterior_front_yard_switch_group
+
+  # ---------------------------------------------------------------------------
+  # When sun rises, turn off the exterior lights
+  #
+  # Dependencies:
+  #  - light.exterior_front_yard_light_group (YAML group)
+  #  - switch.exterior_*_group (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Exterior Lighting - Turn Off
+    id: exterior_lighting_turn_off
+    description: "Turn off the exterior lighting when the sun rises"
+    mode: single
+    triggers:
+      # At sunset
+      - trigger: sun
+        event: sunrise
+    actions:
+      # Turn off the front yard lighting light group
+      - action: light.turn_off
+        target:
+          entity_id:
+            - light.exterior_front_yard_light_group
+      # Turn off the outdoor lighting switch groups
+      - action: switch.turn_off
+        target:
+          entity_id:
+            - switch.exterior_back_yard_switch_group
+            - switch.exterior_front_yard_switch_group

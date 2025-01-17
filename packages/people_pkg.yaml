@@ -1,0 +1,510 @@
+# *****************************************************************************
+# People Package - All things related to people.
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - HAAS.Agent: https://hassagent.readthedocs.io/en/latest/
+#   - HACS Alexa Media Player: https://github.com/alandtse/alexa_media_player
+#   - YAML secrets: https://www.home-assistant.io/docs/configuration/secrets/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # These sensors are used to keep each person.id of the system "secret" when
+  # sharing this config. The actual person."names" are stored in the
+  # secrets.yaml file. These person."names" are configured in the UI in the
+  # Settings -> People section
+  #
+  # Dependencies:
+  #  - secrets.yaml (YAML secrets)
+  # ---------------------------------------------------------------------------
+  - sensor:
+      - name: Person 1 - Entity ID
+        unique_id: person_1_entity_id
+        state: !secret person_1_entity_id
+
+  - sensor:
+      - name: Person 2 - Entity ID
+        unique_id: person_2_entity_id
+        state: !secret person_2_entity_id
+
+  - sensor:
+      - name: Person 3 - Entity ID
+        unique_id: person_3_entity_id
+        state: !secret person_3_entity_id
+
+  - sensor:
+      - name: Person 4 - Entity ID
+        unique_id: person_4_entity_id
+        state: !secret person_4_entity_id
+
+  - sensor:
+      - name: Person 5 - Entity ID
+        unique_id: person_5_entity_id
+        state: !secret person_5_entity_id
+
+  # ---------------------------------------------------------------------------
+  # These sensors are used set the state as to if each person is home. If
+  # a person is "home" then the cooresponding binary_sensor is "on"
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Person 1 - Home
+        unique_id: person_1_home
+        state: >
+          {{ is_state(states('sensor.person_1_entity_id'),'home') }}
+        attributes:
+          person_name: "{{ state_attr(states('sensor.person_1_entity_id'), 'friendly_name') }}"
+
+  - binary_sensor:
+      - name: Person 2 - Home
+        unique_id: person_2_home
+        state: >
+          {{ is_state(states('sensor.person_2_entity_id'),'home') }}
+        attributes:
+          person_name: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }}"
+
+  - binary_sensor:
+      - name: Person 3 - Home
+        unique_id: person_3_home
+        state: >
+          {{ is_state(states('sensor.person_3_entity_id'),'home') }}
+        attributes:
+          person_name: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }}"
+
+  - binary_sensor:
+      - name: Person 4 - Home
+        unique_id: person_4_home
+        state: >
+          {{ is_state(states('sensor.person_4_entity_id'),'home') }}
+        attributes:
+          person_name: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }}"
+
+  - binary_sensor:
+      - name: Person 5 - Home
+        unique_id: person_5_home
+        state: >
+          {{ is_state(states('sensor.person_5_entity_id'),'home') }}
+        attributes:
+          person_name: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }}"
+
+  # ---------------------------------------------------------------------------
+  # If there is more than one person in the home zone then the house is
+  # considered "occupied". This binary sensor sets an attribute
+  #
+  # Dependencies:
+  #   Zones: https://www.home-assistant.io/integrations/zone/
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: House Occupied
+        unique_id: house_occupied
+        state: >
+          {{ states('zone.home')|float(0) > 0 }}
+        # Create some attributes
+        attributes:
+          # How many people are home?
+          count: "{{ states('zone.home')|float(0) }}"
+          # List the names of the people in the home zone
+          people: >
+            {% if states('zone.home')|float(0) > 0 %}
+              {{ states.person | selectattr('state', 'in', ['home'] ) | map(attribute='name') | join(', ') }}
+            {% else %}
+              Nobody
+            {% endif %}
+        # Customize the icon
+        icon: >
+          {% if is_state("binary_sensor.home-_occupied", "on") %}
+            mdi:home-account
+          {% else %}
+            mdi:home
+          {% endif %}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  #                                 PERSON 1
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ---------------------------------------------------------------------------
+  # When person 1 leaves the home zone, take the following actions
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - button.daytona_sleep (INT HAAS.Agent)
+  # ---------------------------------------------------------------------------
+  - alias: Person 1 - Left Home
+    id: person_1_left_home
+    description: "Actions to take when person 1 leaves home"
+    mode: single
+    max_exceeded: silent
+    # When this person has been gone for 5 minutes
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_1_home
+        from: "on"
+        to: "off"
+        for:
+          minutes: 5
+    action:
+      # Put this person's PC to sleep
+      - action: button.press
+        target:
+          entity_id: button.daytona_sleep
+
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  #                                 PERSON 2
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ---------------------------------------------------------------------------
+  # When person 2 leaves the home zone, take the following actions
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - alias: Person 2 - Left Home
+    id: person_2_left_home
+    description: "Actions to take when person 2 leaves home"
+    mode: single
+    max_exceeded: silent
+    # When this person leaves the home zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_2_home
+        from: "on"
+        to: "off"
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has left home"
+          only_if_away: true
+          target:
+            - person_1
+
+  # ---------------------------------------------------------------------------
+  # When person 2 arrives in the the home zone, take the following actions.
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Person 2 - Arrived Home
+    id: person_2_arrived_home
+    description: "Actions to take when person 2 arrives home"
+    mode: single
+    max_exceeded: silent
+    # When this person enters the zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_2_home
+        from: "off"
+        to: "on"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "Mom has returned home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Notify people if they are not home
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has returned home"
+          only_if_away: false
+          target:
+            - person_1
+
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  #                                 PERSON 3
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ---------------------------------------------------------------------------
+  # When person 3 leaves the home zone, take the following actions
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  # ---------------------------------------------------------------------------
+  - alias: Person 3 - Left Home
+    id: person_3_left_home
+    description: "Actions to take when person 3 leaves home"
+    mode: single
+    max_exceeded: silent
+    # When this person leaves the home zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_3_home
+        from: "on"
+        to: "off"
+    action:
+      # Send notifications that they have left
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} has left home"
+          only_if_away: true
+          target:
+            - person_1
+
+
+  # ---------------------------------------------------------------------------
+  # When person 3 arrives in the the home zone, take the following actions.
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Person 3 - Arrived Home
+    id: person_3_arrived_home
+    description: "Actions to take when person 3 arrives home"
+    mode: single
+    max_exceeded: silent
+    # When this person enters the zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_3_home
+        from: "off"
+        to: "on"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} has returned home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Notify people if they are not home
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} has returned home"
+          only_if_away: true
+          target:
+            - person_1
+
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  #                                 PERSON 4
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ---------------------------------------------------------------------------
+  # When person 4 leaves the home zone, take the following actions
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Person 4 - Left Home
+    id: person_4_left_home
+    description: "Actions to take when person 4 leaves home"
+    mode: single
+    max_exceeded: silent
+    # When this person leaves the home zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_4_home
+        from: "on"
+        to: "off"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has left home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Send notifications that they have left
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has left home"
+          only_if_away: true
+          target:
+            - person_1
+
+  # ---------------------------------------------------------------------------
+  # When person 4 arrives in the the home zone, take the following actions.
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  # ---------------------------------------------------------------------------
+  - alias: Person 4 - Arrived Home
+    id: person_4_arrived_home
+    description: "Actions to take when person 4 arrives home"
+    mode: single
+    max_exceeded: silent
+    # When this person enters the zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_4_home
+        from: "off"
+        to: "on"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has returned home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Notify people if they are not home
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has returned home"
+          only_if_away: true
+          target:
+            - person_1
+
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  #                                 PERSON 5
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ---------------------------------------------------------------------------
+  # When person 5 leaves the home zone, take the following actions
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  #  - light.rgbw_guest2_ceilingedge (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Person 5 - Left Home
+    id: person_5_left_home
+    description: "Actions to take when person 5 leaves home"
+    mode: single
+    max_exceeded: silent
+    # When this person leaves the home zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_5_home
+        from: "on"
+        to: "off"
+    action:
+      # Send notifications that they have left
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has left home"
+          only_if_away: true
+          target:
+            - person_1
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has left home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Turn some bedroom lights off
+      - action: light.turn_off
+        entity_id: light.rgbw_guest2_ceilingedge
+
+  # ---------------------------------------------------------------------------
+  # When person 5 arrives in the the home zone, take the following actions.
+  # Device tracking for each person is configured in the Home Assistant UI in
+  # the settings -> people section after clicking on a person's identity
+  #
+  # Dependencies:
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+
+  #  - script.amazon_device_announcement (YAML script)
+  #  - group.alexa_inside (YAML group)
+  #  - light.rgbw_guest2_ceilingedge (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Person 5 - Arrived Home
+    id: person_5_arrived_home
+    description: "Actions to take when person 5 arrives home"
+    mode: single
+    max_exceeded: silent
+    # When this person enters the zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_5_home
+        from: "off"
+        to: "on"
+    action:
+      # Turn some bedroom lights on
+      - action: light.turn_on
+        entity_id: light.rgbw_guest2_ceilingedge
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has returned home"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside
+      # Notify people if they are not home
+      - action: script.ha_mobile_notification
+        data:
+          title: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} Update"
+          message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has returned home"
+          only_if_away: true
+          target:
+            - person_1

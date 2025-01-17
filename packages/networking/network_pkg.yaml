@@ -1,0 +1,86 @@
+# *****************************************************************************
+# Network Package - This package manages anything related our internal network
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# RESTful SENSOR
+#  - These are reloaded using the "REST ENTITIES AND NOTIFY SERVICES" option
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rest:
+  # ---------------------------------------------------------------------------
+  # Use ipinfo.io to get the most recent IP Address and some information about
+  # the address provider
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - resource: https://ipinfo.io/json
+    scan_interval: 1800 # Every 10 minutes
+    sensor:
+      - name: External IP Address
+        unique_id: external_ip_address
+        value_template: "{{ value_json.ip }}"
+        json_attributes:
+          - "hostname"
+          - "city"
+          - "region"
+          - "country"
+          - "loc"
+          - "org"
+          - "postal"
+          - "timezone"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Send a notification when the WAN IP Address changes
+  #
+  # Dependencies: 
+  #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - alias: "Network - WAN IP Address Changed"
+    id: network_wan_ip_address_changed
+    description: "Send a notification when the WAN IP Address changes"
+    mode: single
+    triggers:
+      # When the WAN IP address changes
+      - trigger: state
+        entity_id: sensor.external_ip_address
+    condition:
+      not:
+        # The external_ip_address is NOT unavailable
+        - condition: state
+          entity_id: sensor.external_ip_address
+          state: "unavailable"
+    action:
+      # Send notifications that the address changed
+      - action: script.ha_mobile_notification
+        data:
+          title: "Home IP Address Changed"
+          message: "Current IP Address: {{ states('sensor.external_ip_address') }}"
+          priority: Critical
+          only_house_awake: true
+          target:
+            - person_1

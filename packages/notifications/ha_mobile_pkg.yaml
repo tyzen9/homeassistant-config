@@ -1,0 +1,298 @@
+# *****************************************************************************
+# HA Mobile Package - Used for notifications on the HA Mobile application,
+#   sometimes called "HA Companion"
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - HACS Alexa Media Player: https://github.com/alandtse/alexa_media_player/wiki
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # These sensors are used to keep the name of each person's mobile device by
+  # its ID.  We do this to obfuscate the information that is pushed to github
+  #
+  # Dependencies:
+  #  - secrets.yaml (YAML secrets)
+  # ---------------------------------------------------------------------------
+  - sensor:
+      - name: Person 1 - Mobile ID
+        unique_id: person_1_mobile_id
+        state: !secret person_1_mobile_id
+
+  - sensor:
+      - name: Person 2 - Mobile ID
+        unique_id: person_2_mobile_id
+        state: !secret person_2_mobile_id
+
+  - sensor:
+      - name: Person 3 - Mobile ID
+        unique_id: person_3_mobile_id
+        state: !secret person_3_mobile_id
+
+  - sensor:
+      - name: Person 4 - Mobile ID
+        unique_id: person_4_mobile_id
+        state: !secret person_4_mobile_id
+
+  - sensor:
+      - name: Person 5 - Mobile ID
+        unique_id: person_5_mobile_id
+        state: !secret person_5_mobile_id
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# NOTIFICATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+notify:
+  # ---------------------------------------------------------------------------
+  # This notification is used by primarity by my alerts to send critical alert
+  #  notification.
+  #
+  # Usage Example:
+  #   action: notify.critical_message
+  #   data:
+  #     message: Test Critical Message
+  #
+  #  Dependencies:
+  #  - notify.mobile_app_person_1 (HA Companion App https://companion.home-assistant.io/)
+  # ---------------------------------------------------------------------------
+  - name: critical_message
+    platform: group
+    services:
+      - action: mobile_app_person_1
+        data:
+          data:
+            push:
+              sound:
+                name: "default"
+                critical: 1
+                volume: 1.0
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SCRIPTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+script:
+  # ---------------------------------------------------------------------------
+  # This script is used to send messages to Home Assistant mobile devices by
+  #   by the person selected.
+  #
+  # Note - that each person in our household is assigned a number, and their
+  #        HA Companion device name is set to "Person_x"
+  #
+  # Params
+  #   title (String)(required)
+  #   message (String)(required)
+  #   priority (String)(Default: "Normal") "Normal","Critical"
+  #   only_if_away (Boolean)(Default: false)
+  #   only_house_awake (Boolean)(Default: false)
+  #   target (List)(required)
+  #
+  # Usage Example
+  #   action: script.ha_mobile_notification
+  #    data:
+  #     title: Test Title
+  #     message: Message Body
+  #     priority: Normal
+  #     only_if_away: false
+  #     only_house_awake: false
+  #     target:
+  #       - person_1
+  #
+  #  Dependencies:
+  #  - binary_sensor.house_awake (YAML house_pkg.yaml)
+  #  - notify.mobile_app_person_x (HA Companion App https://companion.home-assistant.io/)
+  # ---------------------------------------------------------------------------
+  ha_mobile_notification:
+    alias: HA Mobile - Notification
+    icon: mdi:cellphone-message
+    description: "Send an announcement to a Home Assistant Mobile (Companion) Device"
+    mode: single
+    fields:
+      title:
+        name: "Title"
+        description: "This is the message title"
+        default: "Test Title"
+        required: true
+        selector:
+          text:
+      message:
+        name: "Message"
+        description: "The message to be sent"
+        default: "Test Message"
+        required: true
+        selector:
+          text:
+      priority:
+        name: "Message Priority"
+        description: "The priority of the message"
+        default: Normal
+        required: false
+        selector:
+          select:
+            options:
+              - Normal
+              - Critical
+            mode: dropdown
+      only_if_away:
+        name: "Only if Away"
+        description: "Only send this message if the recepient is away from home"
+        default: false
+        required: false
+        selector:
+          boolean:
+      only_house_awake:
+        name: "Only when the house is awake"
+        description: "Only send a notification when the house is awake (requires binary_sensor.house_awake)"
+        default: false
+        required: false
+        selector:
+          boolean:
+      target:
+        name: "Target User"
+        description: "The device(s) on which to make the announcement"
+        required: true
+        selector:
+          select:
+            options:
+              - person_1
+              - person_2
+              - person_3
+              - person_4
+              - person_5
+            multiple: true
+
+    sequence:
+      # These variables set default values if none are provided
+      - variables:
+          pri: "{{ priority if priority is defined else 'Normal' }}"
+          oha: "{{ only_house_awake if only_house_awake is defined else false }}"
+          oia: "{{ only_if_away if only_if_away is defined else false }}"
+          mobile_id: "null"
+      - if:
+          - condition: or
+            conditions:
+              # If we are NOT worried about quiet hours
+              - condition: template
+                value_template: "{{ oha == False }}"
+              # OR we are respecting quiet hours, and quiet hours are off
+              - condition: and
+                conditions:
+                  - condition: template
+                    value_template: "{{ oha == True }}"
+                  - condition: state
+                    entity_id: binary_sensor.house_awake
+                    state: "on"
+        then:
+          - repeat:
+              for_each: >
+                {{ target }}
+              sequence:
+                - if:
+                    - condition: or
+                      conditions:
+                        # If we are NOT worried about the recepient's location
+                        - condition: template
+                          value_template: "{{ oia == False }}"
+                        # OR we are making sure this person is away before sending the message
+                        - condition: and
+                          conditions:
+                            - condition: template
+                              value_template: "{{ oia == True }}"
+                            - condition: template
+                              value_template: >
+                                {% if (repeat.item == 'person_1') and (states('binary_sensor.person_1_home') == 'off') %} 
+                                  true
+                                {% elif (repeat.item == 'person_3') and (states('binary_sensor.person_3_home') == 'off') %}
+                                  true
+                                {% elif (repeat.item == 'person_4') and (states('binary_sensor.person_4_home') == 'off') %}
+                                  true
+                                {% elif (repeat.item == 'person_5') and (states('binary_sensor.person_5_home') == 'off') %}
+                                  true
+                                {% endif %}
+                  then:
+                    - action: script.notify_mobile_app
+                      data:
+                        mobile_id: >-
+                          {% if (repeat.item == 'person_1') %}
+                            {{ states('sensor.person_1_mobile_id') }}
+                          {% elif (repeat.item == 'person_2') %}
+                            {{ states('sensor.person_2_mobile_id') }}
+                          {% elif (repeat.item == 'person_3') %}
+                            {{ states('sensor.person_3_mobile_id') }}
+                          {% elif (repeat.item == 'person_4') %}
+                            {{ states('sensor.person_4_mobile_id') }}
+                          {% elif (repeat.item == 'person_5') %}
+                            {{ states('sensor.person_5_mobile_id') }}
+                          {% endif %}
+                        msg_title: "{{ title }}"
+                        msg_body: "{{ message }}"
+                        priority: "{{ pri }}"
+
+  # ---------------------------------------------------------------------------
+  # This script is used to send a notification to a HA Mobile Companion App
+  #
+  # Params
+  #  - host (string):   Then host name to update (i.e. "@", "www", "staging")
+  #  - domain (string): The domain name to pudate (i.e. "mydomain.com")
+  #
+  # For usage details, please read:
+  #   https://www.namecheap.com/support/knowledgebase/article.aspx/29/11/how-to-dynamically-update-the-hosts-ip-with-an-https-request/
+  #
+  #  Dependencies:
+  #  - secrets.yaml
+  # ---------------------------------------------------------------------------
+  notify_mobile_app:
+    alias: "Notify HA Mobile App"
+    sequence:
+      - variables:
+          mobile_id: "{{ mobile_id }}"
+          msg_title: "{{ msg_title }}"
+          msg_body: "{{ msg_body }}"
+          pri: "{{ priority }}"
+
+      - action: persistent_notification.create
+        data:
+          title: "Reach out and touch..."
+          message: "notify.mobile_app_{{ mobile_id }}   Priority: {{ priority }}"
+
+      - if:
+          - condition: template
+            value_template: '{{ pri == "Normal" }}'
+        # If this is a "Normal" notification we do this
+        then:
+          - action: notify.mobile_app_{{ mobile_id }}
+            data:
+              title: "{{ msg_title }}"
+              message: "{{ msg_body }}"
+        # If this is critical, then do this
+        else:
+          - action: notify.mobile_app_{{ mobile_id }}
+            data:
+              title: "{{ msg_title }}"
+              message: "{{ msg_body }}"
+              data:
+                push:
+                  sound:
+                    name: "default"
+                    critical: 1
+                    volume: 1.0

@@ -1,0 +1,47 @@
+homeassistant:
+  # Tyzen9 custom packages
+  packages: !include_dir_named packages
+
+# Loads default set of HA integrations (Do not remove)
+default_config:
+
+# Automations managed in the UI are stored here
+automation: !include automations.yaml
+
+# Scenes managed in the UI are stored here
+scene: !include scenes.yaml
+
+# Tyzen9 Custom YAML configurations (in addition to packages)
+zone: !include zone.yaml
+
+# Tyzen9 Front end dashboards are created using YAML
+frontend: !include frontend.yaml
+lovelace: !include lovelace.yaml
+
+# Enable InfluxDB
+influxdb:
+  api_version: 2
+  ssl: false
+  host: appserver.lan
+  port: 8087
+  token: !secret influxdb_token
+  organization: tyzen9
+  bucket: homeassistant
+  tags:
+    source: HA
+  tags_attributes:
+    - friendly_name
+  default_measurement: units
+  # exclude:
+  #   entities:
+  #     - zone.home
+  #   domains:
+  #     - persistent_notification
+  #     - person
+  include:
+    domains:
+      - sensor
+      - binary_sensor
+      - sun
+    # entities:
+    #   - weather.home

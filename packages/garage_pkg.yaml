@@ -1,0 +1,472 @@
+# *****************************************************************************
+# Garage Package - All things related to the garage.
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - Zigbee: https://www.home-assistant.io/integrations/zha
+#   - HACS: https://hacs.xyz
+#   - Alexa Media Player: https://github.com/alandtse/alexa_media_player
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HELPERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_boolean:
+  garage_motion_lighting_autocorrect:
+    name: Toggle - Garage Motion Lighting Autocorrect
+    icon: mdi:auto-fix
+
+  garage_motion_lighting_enabled:
+    name: Toggle - Garage Motion Lighting Enabled
+    icon: mdi:motion-sensor
+
+timer:
+  garage_lights:
+    name: Timer - Garage Lights
+    icon: mdi:timer-outline
+    duration: "00:05:00"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# COVERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cover:
+  # ---------------------------------------------------------------------------
+  # This is the cover contol for the garage door.
+  #
+  # Dependencies:
+  #  - switch.relay_garage_dooropener (INT Shelly)
+  #  - binary_sensor.relay_garage_dooropener_input (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - platform: template
+    covers:
+      garage_door:
+        device_class: garage
+        unique_id: "garage_door"
+        friendly_name: "Cover - Garage Door"
+        value_template: '{{ is_state("binary_sensor.relay_garage_dooropener_input", "off") }}'
+        open_cover:
+          - condition: state
+            entity_id: cover.garage_door
+            state: closed
+          - action: switch.turn_on
+            target:
+              entity_id: switch.relay_garage_dooropener
+        close_cover:
+          - condition: state
+            entity_id: cover.garage_door
+            state: open
+          - action: switch.turn_on
+            target:
+              entity_id: switch.relay_garage_dooropener
+        stop_cover:
+          - action: switch.turn_on
+            data:
+              entity_id: switch.relay_garage_dooropener
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # This trigger based template sensor tracks the last time the garage light
+  # switch was turned off. This is used to provide a physical means to
+  # disable motion detected lighting if you will be working in the garage for
+  # a while and don't want the lights turning on/off
+  #
+  # Dependencies:
+  #  - switch.relay_garage_ceilinglight (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      - trigger: state
+        entity_id: switch.relay_garage_ceilinglight
+        from: "on"
+        to: "off"
+    sensor:
+      - name: "Garage - Ceiling Light Switch Last Off"
+        unique_id: garage_ceiling_light_switch_last_off
+        device_class: timestamp
+        state: "{{ now() }}"
+
+  # ---------------------------------------------------------------------------
+  # This trigger based template sets some binary binary sensors that will be
+  # true if the garage is left open and the house is not awake or the house
+  # is not occupied.
+  #
+  # Dependencies:
+  #  - binary_sensor.house_awake (house_pkg.yaml)
+  #  - binary_sensor.house_occupied (people_pkg.yaml)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      # When the garage is open for 5 minutes
+      - trigger: state
+        entity_id: cover.garage_door
+        from: "closed"
+        to: "open"
+        for:
+          minutes: 5
+      # When the garage is closed
+      - trigger: state
+        entity_id: cover.garage_door
+        from: "open"
+        to: "closed"
+      # When the house goes to sleep
+      - trigger: state
+        entity_id: binary_sensor.house_awake
+        from: "on"
+        to: "off"
+      # When the house wakes up
+      - trigger: state
+        entity_id: binary_sensor.house_awake
+        from: "off"
+        to: "on"
+      # When the house is unoccupied
+      - trigger: state
+        entity_id: binary_sensor.house_occupied
+        from: "on"
+        to: "off"
+      # When the house is occupied
+      - trigger: state
+        entity_id: binary_sensor.house_occupied
+        from: "off"
+        to: "on"
+    # Evaluate the sensor values
+    binary_sensor:
+      # Is door open while the house is NOT awake?
+      - name: "Garage Open House Asleep"
+        unique_id: garage_open_house_asleep
+        state: >
+          {{ is_state('cover.garage_door', 'open') 
+              and is_state('binary_sensor.house_awake', 'off') }}
+      # Is door open while the house is NOT occupied?
+      - name: "Garage Open House Unoccupied"
+        unique_id: garage_open_house_unoccupied
+        state: >
+          {{ is_state('cover.garage_door', 'open') 
+              and is_state('binary_sensor.house_occupied', 'off') }}
+
+  # ---------------------------------------------------------------------------
+  # This trigger based template sets some binary binary sensors that will be
+  # true if the garage is left open and the temperature outside is cold
+  #
+  # Dependencies:
+  #  - weather.tomorrow_io_home_daily (INT Tomorrow.io)
+  # ---------------------------------------------------------------------------
+  - trigger:
+      # When the garage is open for 5 minutes
+      - trigger: state
+        entity_id: cover.garage_door
+        from: "closed"
+        to: "open"
+        for:
+          minutes: 30
+      # When the garage is closed
+      - trigger: state
+        entity_id: cover.garage_door
+        from: "open"
+        to: "closed"
+      # The temperature drops below some threshold
+      - trigger: numeric_state
+        entity_id: weather.tomorrow_io_home_daily
+        value_template: "{{ state_attr('weather.tomorrow_io_home_daily', 'temperature') }}"
+        below: 60
+    # Evaluate the sensor values
+    binary_sensor:
+      # Is door open while the house is NOT awake?
+      - name: "Garage Open Below Freezing"
+        unique_id: garage_open_below_freezing
+        state: >
+          {{ is_state('cover.garage_door', 'open') 
+              and state_attr("weather.tomorrow_io_home_daily", "temperature") < 60  }}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Turn on the garage lights based on several trigger points
+  #
+  # Dependencies:
+  #  - binary_sensor.magnet_sensor_workshop_garage_door_opening (INT Zigbee)
+  #  - binary_sensor.motion_garage_room (INT Zigbee)
+  #  - binary_sensor.motion_garage_mainentrydoor_motion (INT Zigbee)
+  #  - switch.relay_garage_ceilinglight (INT Shelly)
+  #  - binary_sensor.relay_garage_dooropener_input (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Garage - Ceiling Lights On
+    id: garage_ceiling_lights_on
+    description: "Turn on the garage lights"
+    mode: single
+    max_exceeded: silent
+    # There are several triggers that are used to turn on the garage lights
+    triggers:
+      # The garage basement door is opened
+      - trigger: state
+        entity_id: binary_sensor.magnet_sensor_workshop_garage_door_opening
+        from: "off"
+        to: "on"
+      # "Whole room" motion sensor for the garage
+      - trigger: state
+        entity_id: binary_sensor.motion_garage_room
+        from: "off"
+        to: "on"
+        # Motion sensor at the entry to the garage from the house
+      - trigger: state
+        entity_id: binary_sensor.motion_garage_mainentrydoor_motion
+        from: "off"
+        to: "on"
+        # Reed switch connected to the Shelly show the garage is open
+      - trigger: state
+        entity_id: binary_sensor.relay_garage_dooropener_input
+        from: "on" # >> on is closed
+        to: "off" # >> off is open
+        for:
+          seconds: 5
+    # Only turn the lights on if automatic lights are enabled
+    conditions:
+      alias: "Motion Lighting is enabled, and the lights have been off for 2 seconds."
+      and:
+        - condition: state
+          entity_id: input_boolean.garage_motion_lighting_enabled
+          state: "on"
+    actions:
+      # Anytime a trigger trips, reset and start the garage lights timer
+      - action: timer.start
+        target:
+          entity_id:
+            - timer.garage_lights
+      # If the ceiling light switch is "off"
+      - if:
+          - condition: state
+            entity_id: switch.relay_garage_ceilinglight
+            state: "off"
+        # then turn the lights on
+        then:
+          - action: switch.turn_on
+            entity_id: switch.relay_garage_ceilinglight
+
+  # ---------------------------------------------------------------------------
+  # Turn off the garage lights whenthe timer expire
+  #
+  # Dependencies:
+  #  - switch.relay_garage_ceilinglight (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Garage - Ceiling Lights Timer Ends
+    id: garage_ceiling_lights_timer_ends
+    description: "Turn off the garage lights when the timer expires"
+    mode: single
+    # When the garage light time expires
+    triggers:
+      - trigger: state
+        entity_id: timer.garage_lights
+        to: "idle"
+    # If motion active lighting is enabled
+    conditions:
+      condition: state
+      entity_id: input_boolean.garage_motion_lighting_enabled
+      state: "on"
+    # Then turn the lights off
+    actions:
+      - action: switch.turn_off
+        entity_id: switch.relay_garage_ceilinglight
+
+
+  # ---------------------------------------------------------------------------
+  # Toggle the garage automatic lighting with the physical switch in the garage
+  # This is useful if you will be working in the garage for a long time and
+  # do not want to put up with the lights turning out on you.
+  #
+  # Dependencies:
+  #  - switch.relay_garage_ceilinglight (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Garage - Auto Lighting Toggled
+    id: garage_auto_lighting_toggled
+    description: "The light switch can be used to toggle automatic lighting"
+    mode: single
+    # Each time the ceiling light is turned on
+    triggers:
+      - trigger: state
+        entity_id: switch.relay_garage_ceilinglight
+        to: "on"
+    # Check to see if the light was off for less than 3 seconds.
+    conditions:
+      condition: template
+      value_template: '{{ as_timestamp(now()) -  as_timestamp( states("sensor.garage_ceiling_light_switch_last_off"), float(0)) < 3 }}'
+    # If the light was turned off then back on in less than 3 seconds, toggle
+    # the automatic lighting helper
+    actions:
+      - action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.garage_motion_lighting_enabled
+
+  # ---------------------------------------------------------------------------
+  # Make an announcement on the garage smart speaker when the automatic
+  # lighting helper is toggled
+  #
+  # Dependencies:
+  #  - script.amazon_device_announcement (YAML script)
+  #  - media_player.alexa* (INT HACS - Alexa Media Player)
+  # ---------------------------------------------------------------------------
+  - alias: Garage - Auto Lighting Announcement
+    id: garage_auto_lighting_announcement
+    description: "Make an announcement when the auto lighting is toggled"
+    mode: single
+    # When the motion active lighting helper is toggled
+    triggers:
+      - trigger: state
+        entity_id: input_boolean.garage_motion_lighting_enabled
+    # Make an announcement in the garage
+    actions:
+      # If the helper is on
+      - if:
+          - condition: state
+            entity_id: input_boolean.garage_motion_lighting_enabled
+            state: "on"
+        # Then announce that motion detected lighing is active
+        then:
+          - action: script.amazon_device_announcement
+            data:
+              message: "The garage motion detected lighting is now active."
+              volume: Normal
+              announcement: false
+              only_house_awake: true
+              target:
+                - media_player.alexa_garage
+        # Otherwise announce that the motion detected lighting is off
+        else:
+          - action: script.amazon_device_announcement
+            data:
+              message: "The garage motion detected lighting has been deactivated."
+              volume: Normal
+              announcement: false
+              only_house_awake: true
+              target:
+                - media_player.alexa_garage
+
+  # ---------------------------------------------------------------------------
+  # If enabled, reset the motion detected lighting every night. This way, the
+  # next morning motion detected lighting is working again. The autocorrection
+  # helper for this must be turned on for this to work
+  #
+  # Dependencies: (NONE)
+  # ---------------------------------------------------------------------------
+  - alias: Garage - Reset Lighting
+    id: garage_reset_auto_lighting
+    description: "Reset automatic lighting setting nightly"
+    mode: single
+    # In the wee hours of the morning
+    triggers:
+      - trigger: time
+        at: "02:00:00"
+    # If motion activity auto correction is enabled
+    conditions:
+      condition: state
+      entity_id: input_boolean.garage_motion_lighting_autocorrect
+      state: "on"
+    actions:
+      # then, if motion activity is disabled, then re-enable it
+      - if:
+          - condition: state
+            entity_id: input_boolean.garage_motion_lighting_enabled
+            state: "off"
+        then:
+          - action: input_boolean.turn_on
+            entity_id: input_boolean.garage_motion_lighting_enabled
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ALERTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alert:
+  # ---------------------------------------------------------------------------
+  # Sends an alert if the garage is open and the house is considered asleep
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  garage_open_house_asleep:
+    name: Garage Left Open - House Asleep
+    entity_id: binary_sensor.garage_open_house_asleep
+    state: "on"
+    skip_first: false
+    repeat:
+      - 10
+      - 15
+      - 20
+      - 30
+      - 45
+      - 60
+      - 120
+    title: "Garage Open"
+    message: "It is really late, and the garage was left open."
+    done_message: "RESOLVED: The garage was closed."
+    notifiers:
+      - critical_message
+
+  # ---------------------------------------------------------------------------
+  # Sends an alert if the garage is open and the house unoccupied
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  garage_open_house_unoccupied:
+    name: Garage Left Open - House Unoccupied
+    entity_id: binary_sensor.garage_open_house_unoccupied
+    state: "on"
+    skip_first: false
+    repeat:
+      - 10
+      - 15
+      - 20
+      - 30
+      - 45
+      - 60
+      - 120
+    title: "Garage Open"
+    message: "Nobody is home, and the garage was left open."
+    done_message: "RESOLVED: The garage was closed."
+    notifiers:
+      - critical_message
+
+  # ---------------------------------------------------------------------------
+  # Sends an alert if the garage is open and the house is considered asleep
+  #
+  # Dependencies:
+  #  - notify.critical_message (YAML notify)
+  # ---------------------------------------------------------------------------
+  garage_open_below_freezing:
+    name: Garage Left Open - Below Freezing
+    entity_id: binary_sensor.garage_open_below_freezing
+    state: "on"
+    skip_first: false
+    repeat:
+      - 10
+      - 15
+      - 20
+      - 30
+      - 45
+      - 60
+      - 120
+    title: "Garage Open"
+    message: 'It is {{ state_attr("weather.tomorrow_io_home_daily", "temperature") }} degrees out, and the garage was left open.'
+    done_message: "RESOLVED: The garage was closed."
+    notifiers:
+      - critical_message
+

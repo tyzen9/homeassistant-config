@@ -1,0 +1,321 @@
+# *****************************************************************************
+# Basement Theater Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#   - Shelly: https://www.home-assistant.io/integrations/shelly/
+#   - Zigbee: https://www.home-assistant.io/integrations/zha
+#   - UI Scenes: Scenes are configured in the HA interface
+#
+# Package Depednecies:
+#   - wled_utilities_pkg.yaml is needed for the common and custom WLED functions
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SENSORS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
+  # ---------------------------------------------------------------------------
+  # This binary sensor uses the smart plug the projector is using to determine
+  # if the projector is running based on power consumption
+  #
+  # External Package Dependencies:
+  #  - sensor.plug_wp*_power (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Basement Theater - Projector Status
+        unique_id: basement_theater_projector_status
+        state: >
+          {{ states('sensor.plug_wp01_power')|float(0) > 30 }}
+        icon: >
+          {% if is_state("binary_sensor.basement_theater_projector_status", "on") %}
+            mdi:projector
+          {% else %}
+            mdi:projector-off
+          {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # This binary sensor uses the smart plug the dehumidifier is using to
+  # determine if the dehumidifier is running based on power consumption
+  #
+  # External Package Dependencies:
+  #  - sensor.plug_wp*_power (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Basement Theater - Dehumidifier Status
+        unique_id: basement_theater_dehumidifier_status
+        state: >
+          {{ states('sensor.plug_wp02_power')|float(0) > 10 }}
+        icon: >
+          {% if is_state("binary_sensor.dehumidifier_status", "on") %}
+            mdi:air-humidifier
+          {% else %}
+            mdi:air-humidifier-off
+          {% endif %}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # When the network closet door is closed, turn off some LED lights
+  #
+  # External Package Dependencies:
+  #  - binary_sensor.magnetsensor_theater_closet_openingg (INT Zigbee)
+  #  - light.rgbw_theater_closet (INT Shelly)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater - Network Closet Door Closed
+    id: basement_theater_network_closet_door_closed
+    description: "Turn off network closet LED lighting when the door is closed"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the door is closed
+      - trigger: state
+        entity_id:
+          - binary_sensor.magnetsensor_theater_closet_opening
+        to: "off"
+    actions:
+      # Turn off the LED lighting
+      - action: light.turn_off
+        target:
+          entity_id:
+            - light.rgbw_theater_closet
+
+  # ---------------------------------------------------------------------------
+  # When the network closet door is opened, turn on some LED lights. The color
+  #   of the LED lights will depend on if the projector is running or not.
+  #
+  # External Package Dependencies:
+  #  - binary_sensor.magnetsensor_theater_closet_openingg (INT Zigbee)
+  #  - scene.network_closet_* (UI Scenes)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater - Network Closet Door Opened
+    id: basement_theater_network_closet_door_opened
+    description: "Turn on network closet LED lighting when the door is opened"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the door is opened
+      - trigger: state
+        entity_id:
+          - binary_sensor.magnetsensor_theater_closet_opening
+        to: "on"
+    actions:
+      - if:
+          # If the projector is on
+          - condition: state
+            entity_id: binary_sensor.basement_theater_projector_status
+            state: "on"
+        then:
+          # Then activate this scene
+          - action: scene.turn_on
+            target:
+              entity_id: scene.network_closet_red
+        else:
+          # Otherwise, this scene
+          - action: scene.turn_on
+            target:
+              entity_id: scene.network_closet_bright
+
+  # ---------------------------------------------------------------------------
+  # When the projector is turned on, then we want to turn off the dehuminifier
+  #   and manage the color of the network closet lights, if the lights in there
+  #   are presently on.
+  #
+  # External Package Dependencies:
+  #  - switch.plug_wp*_relay (INT ESPHome)
+  #  - binary_sensor.magnetsensor_theater_closet_openingg (INT Zigbee)
+  #  - scene.network_closet_* (UI Scenes)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater -  Projector Turned On
+    id: basement_theater_projector_turned_on
+    description: "Actions to take when the theater projector is turned on"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the projector is turned on
+      - trigger: state
+        entity_id:
+          - binary_sensor.basement_theater_projector_status
+        from: "off"
+        to: "on"
+    actions:
+      # Turn off the outlet the powers the dehumidifier - who wants to hear that thing?
+      - action: switch.turn_off
+        target:
+          entity_id:
+            - switch.plug_wp02_relay
+      # If the closet lights are on
+      - condition: state
+        entity_id: light.rgbw_theater_closet
+        state: "on"
+      # Then turn on this scene
+      - action: scene.turn_on
+        target:
+          entity_id: scene.network_closet_red
+
+  # ---------------------------------------------------------------------------
+  # When the projector is turned off, then we want to turn on the dehuminifier
+  #   and manage the color of the network closet lights, if the lights in there
+  #   are presently on.
+  #
+  # External Package Dependencies:
+  #  - switch.plug_wp*_relay (INT ESPHome)
+  #  - light.rgbw_theater_closet (INT Shelly)
+  #  - scene.network_closet_* (UI Scenes)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater - Projector Turned Off
+    id: basement_theater_projector_turned_off
+    description: "Actions to take when the theater projector is turned off"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the projector is turned off
+      - trigger: state
+        entity_id:
+          - binary_sensor.basement_theater_projector_status
+        from: "on"
+        to: "off"
+    actions:
+      # Turn the power back on to the dehumidifier
+      - action: switch.turn_on
+        target:
+          entity_id:
+            - switch.plug_wp02_relay
+      # If the closet lights are on
+      - condition: state
+        entity_id: light.rgbw_theater_closet
+        state: "on"
+      # Then turn on this scene
+      - action: scene.turn_on
+        target:
+          entity_id: scene.network_closet_bright
+
+  # ---------------------------------------------------------------------------
+  # When either of these 3 way switches are toggled, toggle the WLED stairs
+  #  lighting.
+  #
+  # External Package Dependencies:
+  #  - switch.switch* (INT ESPHome)
+  #  - light.wled* (INT WLED)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater -  Step Lights Toggle
+    id: basement_theater_step_lights_toggle
+    description: "Toggle the lighting used for the steps"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the paddle switch is toggled
+      - trigger: state
+        entity_id:
+          - switch.switch_ws05_3w_switch
+    actions:
+      # Toggle the WLED steps light
+      - action: script.wled_toggle
+        data:
+          wled_hostname: "wled-basement-steps.local"
+
+  # ---------------------------------------------------------------------------
+  # When this switch is double pressed, turn off all the basement lights
+  #
+  # External Package Dependencies:
+  #  - event_type: esphome.2clicks.* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater - Step Lights Double Click
+    id: basement_theater_steps_lights_2clicks
+    description: "Double click the steps lights shuts down all basement lights"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the switch is double clicked
+      - trigger: event
+        event_type: esphome.2clicks.switch-ws05-3w
+    actions:
+      - action: light.turn_off
+        target:
+          entity_id:
+            - light.dimmer_wd09_dimmer
+            - light.dimmer_wd12_dimmer
+            - light.dimmer_wd17_3w_dimmer
+            - light.dimmer_wd16_3w_dimmer
+      - action: script.wled_off
+        data:
+          wled_hostname: "wled-basement-shelf.local"
+
+  # ---------------------------------------------------------------------------
+  # When this switch is single pressed, toggle the WLED shelf lighting.
+  #
+  # External Package Dependencies:
+  #  - switch.switch* (INT ESPHome)
+  #  - light.wled* (INT WLED)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater -  Shelf Lights Toggle
+    id: basement_theater_shelf_lights_toggle
+    description: "Toggle the lighting used for the basement shelf"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the paddle switch is toggled
+      - trigger: state
+        entity_id:
+          - switch.switch_ws02_switch
+    actions:
+      # Toggle the WLED steps light
+      - action: script.wled_toggle
+        data:
+          wled_hostname: "wled-basement-shelf.local"
+
+  # ---------------------------------------------------------------------------
+  # When this switch is double pressed, loop throught the WLED present shelf
+  #  lighting.
+  #
+  # External Package Dependencies:
+  #  - event_type: esphome.2clicks.* (INT ESPHome)
+  # ---------------------------------------------------------------------------
+  - alias: Basement Theater -  Shelf Lights Next Preset
+    id: basement_theater_shelf_lights_next_preset
+    description: "Loop through the WLED preset lighting settings"
+    mode: single
+    max_exceeded: silent
+    triggers:
+      # When the switch is double clicked
+      - trigger: event
+        event_type: esphome.2clicks.switch-ws02
+    actions:
+      - action: rest_command.wled_next_basement_shelf_preset
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# REST COMMANDS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rest_command:
+  # ---------------------------------------------------------------------------
+  # This rest_command is used to post a command to WLED that asks it to loop
+  #  through the preset lighting configurations
+  #
+  #  External Package Dependencies:
+  #   - http://wled-basement-shelf.local (INT WLED)
+  # ---------------------------------------------------------------------------
+  wled_next_basement_shelf_preset:
+    url: "http://wled-basement-shelf.local/json/state"
+    method: POST
+    payload: '{"ps": "1~8~"}'
+    verify_ssl: false
