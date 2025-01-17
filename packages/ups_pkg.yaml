@@ -143,7 +143,7 @@ automation:
         data:
           title: "🪫Replace Battery"
           message: "UPS 1 (RasPis) recommends a battery replacement"
-          priority: Critical
+          priority: critical
           target:
             - person_1
 
@@ -164,7 +164,7 @@ automation:
         data:
           title: "🪫Replace Battery"
           message: "UPS 2 (Modem/Router) recommends a battery replacement"
-          priority: Critical
+          priority: critical
           target:
             - person_1
 
@@ -185,7 +185,7 @@ automation:
         data:
           title: "🪫Replace Battery"
           message: "UPS 3 (Server) recommends a battery replacement"
-          priority: Critical
+          priority: critical
           target:
             - person_1
 
@@ -215,7 +215,7 @@ automation:
         data:
           title: "🪫Low Battery"
           message: "UPS 1 (RasPis) will power down soon, Status: {{ states.sensor.ups_1_status.state }}"
-          priority: Critical
+          priority: critical
           target:
             - person_1
 
@@ -236,7 +236,7 @@ automation:
         data:
           title: "🪫Low Battery"
           message: "UPS 2 (Modem/Router) will power down soon, Status: {{ states.sensor.ups_2_status.state }}"
-          priority: Critical
+          priority: critical
           target:
             - person_1
 
@@ -257,6 +257,6 @@ automation:
         data:
           title: "🪫Low Battery"
           message: "UPS 3 (Server) will power down soon, Status: {{ states.sensor.ups_3_status.state }}"
-          priority: Critical
+          priority: critical
           target:
             - person_1

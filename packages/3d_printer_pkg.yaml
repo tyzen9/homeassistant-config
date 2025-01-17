@@ -79,7 +79,7 @@ automation:
             data:
               title: "3D Printing is completed"
               message: "Printer power off countdown: {{ state_attr('timer.3d_printer_auto_off', 'duration') }}"
-              priority: Critical
+              priority: critical
               target:
                 - person_1
         else:
@@ -144,7 +144,7 @@ automation:
         data:
           title: "3D Printing is Paused"
           message: "The 3D printer is paused and needs attention."
-          priority: Critical
+          priority: critical
           target:
             - person_1
 

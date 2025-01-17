@@ -57,7 +57,7 @@ automation:
   # ---------------------------------------------------------------------------
   # Send a notification when the WAN IP Address changes
   #
-  # Dependencies: 
+  # Dependencies:
   #  - script.ha_mobile_notification (YAML ha_mobile_pkg.yaml)
   # ---------------------------------------------------------------------------
   - alias: "Network - WAN IP Address Changed"
@@ -80,7 +80,7 @@ automation:
         data:
           title: "Home IP Address Changed"
           message: "Current IP Address: {{ states('sensor.external_ip_address') }}"
-          priority: Critical
+          priority: critical
           only_house_awake: true
           target:
             - person_1

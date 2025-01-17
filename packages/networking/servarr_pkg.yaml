@@ -190,8 +190,8 @@ automation:
             data:
               title: "🏴‍☠️ Black Pearl OK"
               message: "The Black Pearl sails again..."
-              priority: Normal
-              only_if_away: false
+              priority: normal
+              presence: either
               only_house_awake: false
               target:
                 - person_1
@@ -206,8 +206,8 @@ automation:
             data:
               title: "🚨 Black Pearl Error"
               message: "There is an error/warning for a Servarr service"
-              priority: Normal
-              only_if_away: false
+              priority: normal
+              presence: either
               only_house_awake: false
               target:
                 - person_1

@@ -204,7 +204,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has left home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
 
@@ -246,7 +246,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has returned home"
-          only_if_away: false
+          presence: either
           target:
             - person_1
 
@@ -280,10 +280,9 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} has left home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
-
 
   # ---------------------------------------------------------------------------
   # When person 3 arrives in the the home zone, take the following actions.
@@ -323,7 +322,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_3_entity_id'), 'friendly_name') }} has returned home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
 
@@ -368,7 +367,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has left home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
 
@@ -410,7 +409,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_4_entity_id'), 'friendly_name') }} has returned home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
 
@@ -447,7 +446,7 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has left home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
       # Make an verbal announcement
@@ -505,6 +504,6 @@ automation:
         data:
           title: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_5_entity_id'), 'friendly_name') }} has returned home"
-          only_if_away: true
+          presence: away
           target:
             - person_1
