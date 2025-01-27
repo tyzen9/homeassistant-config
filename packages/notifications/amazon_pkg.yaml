@@ -87,7 +87,7 @@ script:
             mode: dropdown
       announcement:
         name: "Announcement Tone"
-        description: "Play the announcemnet tone before reading the message"
+        description: "Play the announcemnet tone before reading the message (Disabled as of Jan 23, 2025)"
         required: true
         selector:
           boolean:
@@ -141,12 +141,16 @@ script:
                   {{ message }}
                 {% endif %}
               data:
-                type: >
-                  {% if announcement  %}
-                    announce
-                  {% else %}
-                    tts
-                  {% endif %}
+                # Support for announcement has hit/miss success.
+                # Commented out support fot this on Jan 23, 2025
+                #
+                # type: >
+                #   {% if announcement  %}
+                #     announce
+                #   {% else %}
+                #     tts
+                #   {% endif %}
+                type: tts
               target: "{{ target }}"
         else:
           - action: persistent_notification.create
