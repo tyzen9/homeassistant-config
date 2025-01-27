@@ -25,16 +25,6 @@
 # *****************************************************************************
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# HELPERS
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-counter:
-  dryer_vibrations:
-    name: Counter - The number of dryer vibrations
-    icon: mdi:counter
-    initial: 0
-    step: 1
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # SENSORS
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 template:
@@ -157,7 +147,7 @@ template:
   #
   # NOTE: A time_pattern trigger and an attribut is used in these sensors in
   #       order to make sure the sensor updates regurlarly.  This will all for
-  #       the use of the last_updated time in the
+  #       the use of the last_updated time in the future
   #
   # Dependencies: (None)
   # ---------------------------------------------------------------------------
@@ -236,31 +226,6 @@ automation:
           only_house_awake: false
           target:
             - group.alexa_inside
-            #- media_player.alexa_living_room
-
-  - alias: Counting Dryer
-    trigger:
-      - trigger: state
-        entity_id: binary_sensor.tumbledryer_vibration
-        to: "on"
-    action:
-      action: counter.increment
-      target:
-        entity_id: counter.dryer_vibrations
-
-  - alias: Dryer Complete
-    triggers:
-      - trigger: state
-        entity_id: binary_sensor.tumbledryer_vibration
-        to: "off"
-        for: "00:02:00"
-    conditions:
-      - condition: template
-        value_template: "{{states('counter.dryer_vibrations')|int > 15}}"
-    actions:
-      - action: counter.reset
-        target:
-          entity_id: counter.dryer_vibrations
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # HISTORY STATS
