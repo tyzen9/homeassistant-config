@@ -71,8 +71,8 @@ automation:
     description: "Turn on the accent lighting when a schedule helper turns on."
     mode: single
     # When the house is awake
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: schedule.guest_1_accent_lighting
         from: "off"
         to: "on"
@@ -95,8 +95,8 @@ automation:
     description: "Turn off the accent lighting when a schedule helper expires"
     mode: single
     # When the house is awake
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: schedule.guest_1_accent_lighting
         from: "on"
         to: "off"
@@ -120,8 +120,8 @@ automation:
     description: "When the room occupant leaves home, turn the accent lighting off"
     mode: single
     # When this person leaves the home zone
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id:
           - binary_sensor.person_4_home
         from: "on"
@@ -147,8 +147,8 @@ automation:
     description: "When the room occupant arrives home, turn the accent lighting on"
     mode: single
     # When this person leaves the home zone
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id:
           - binary_sensor.person_4_home
         from: "off"

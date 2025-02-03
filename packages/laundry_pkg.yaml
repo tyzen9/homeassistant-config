@@ -40,13 +40,13 @@ template:
         unique_id: laundry_washing_machine_running
         # If the washing machine is consuming more than the set Watts
         state: >
-          {{ states('sensor.relaypm_laundryroom_washer_power')|float(0) > 4 }}
+          {{ states('sensor.relaypm_laundryroom_washer_power')|float(0) > 6 }}
         # Make sure the power consumption holds here for a this duration before
         # turning the sensor on
         delay_on:
           seconds: 5
         delay_off:
-          minutes: 1
+          seconds: 5
         icon: >
           {% if is_state("binary_sensor.laundry_washing_machine_running", "on") %}
             mdi:washing-machine
@@ -56,21 +56,22 @@ template:
 
   # ---------------------------------------------------------------------------
   # This binary sensor will monitors if the tumble dryer is running. This is
-  # determined by the temperature sensed in the dryer's exhause vent
+  # determined by a CT clamp in the breaker box that is measuring one phase
+  # of the dryer's 220 connection.
   #
   # Dependencies:
-  #  - sensor.relaypm_laundryroom_washer_power (INT Shelly)
+  #  - sensor.relaypm_laundryroom (INT Shelly)
   # ---------------------------------------------------------------------------
   - binary_sensor:
       - name: Laundry - Tumble Dryer Running
         unique_id: laundry_tumble_dryer_running
-        # If the dryer is vibrating, then its running
+        # If the dryer is consuming Watts of power, then its running
         state: >
-          {{ states('sensor.tumbledryer_exhaust_temperature')|int(0) > 80 }}
+          {{ states('sensor.energy_meter_tumble_dryer_channel_1_power')|float(0) > 4 }}
         delay_on:
           seconds: 5
         delay_off:
-          minutes: 10
+          seconds: 10
         icon: >
           {% if is_state("binary_sensor.laundry_tumble_dryer_running", "on") %}
             mdi:tumble-dryer
@@ -259,15 +260,6 @@ sensor:
     start: "{{ now().replace(hour=0, minute=0, second=0) }}"
     duration:
       hours: 24
-
-  - platform: statistics
-    name: "Dryer tumbledryer temp change over 2 minutes"
-    entity_id: sensor.tumbledryer_exhaust_temperature
-    state_characteristic: change
-    max_age:
-      minutes: 2
-    sampling_size: 50
-    precision: 1
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # UTILITY METERS
