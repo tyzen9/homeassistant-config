@@ -1,4 +1,4 @@
-# Note: In storage mode, resources are defined in the /config/lovelace/resources tab. 
+# Note: In storage mode, resources are defined in the /config/lovelace/resources tab.
 mode: storage
 dashboards:
   lovelace-mobile-dashboard:
@@ -7,3 +7,10 @@ dashboards:
     icon: mdi:castle
     show_in_sidebar: true
     filename: dashboards/mobile-dashboard.yaml
+
+  lovelace-mobile-dashboard-2:
+    mode: yaml
+    title: NextGen Mobile
+    icon: mdi:flash
+    show_in_sidebar: true
+    filename: dashboards/mobile.yaml
