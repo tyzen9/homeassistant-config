@@ -78,14 +78,13 @@ notify:
   - name: critical_message
     platform: group
     services:
-      - action: mobile_app_person_1
+      - action: !secret person_1_mobile_id
         data:
           data:
-            push:
-              sound:
-                name: "default"
-                critical: 1
-                volume: 1.0
+            ttl: 0
+            priority: high
+            sticky: true
+            channel: "Critical Notification"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # SCRIPTS
@@ -271,6 +270,18 @@ script:
                           {% elif (repeat.item == 'person_5') %}
                             {{ states('sensor.person_5_mobile_id') }}
                           {% endif %}
+                        mobile_os: >-
+                          {% if (repeat.item == 'person_1') %}
+                            {{ states('sensor.person_1_mobile_os') }}
+                          {% elif (repeat.item == 'person_2') %}
+                            {{ states('sensor.person_2_mobile_os') }}
+                          {% elif (repeat.item == 'person_3') %}
+                            {{ states('sensor.person_3_mobile_os') }}
+                          {% elif (repeat.item == 'person_4') %}
+                            {{ states('sensor.person_4_mobile_os') }}
+                          {% elif (repeat.item == 'person_5') %}
+                            {{ states('sensor.person_5_mobile_os') }}
+                          {% endif %}
                         msg_title: "{{ title }}"
                         msg_body: "{{ message }}"
                         priority: "{{ pri }}"
@@ -284,6 +295,7 @@ script:
   #        In this case you should pass "bobs_iphone"
   #      - This name is also found in the companion app settings, under the
   #        server name, and the propery "Device Name"
+  #   mobile_os (String)(Default: "ios") - The OS type of the device "ios"|"android"
   #   msg_title (String)(required) - Title of the message to send
   #   msg_body  (String) - The body of the message to send
   #   priority  (String)(Default: "Normal") "Normal","Critical"
@@ -296,6 +308,7 @@ script:
     sequence:
       - variables:
           mobile_id: "{{ mobile_id }}"
+          mobile_os: "{{ mobile_os if mobile_os is defined else 'ios' }}"
           msg_title: "{{ msg_title }}"
           msg_body: "{{ msg_body }}"
           pri: "{{ priority if priority is defined else 'Normal' }}"
@@ -305,16 +318,38 @@ script:
             value_template: '{{ pri == "critical" }}'
         # If this is a "Critical" priority notification we do this
         then:
-          - action: notify.{{ mobile_id }}
-            data:
-              title: "{{ msg_title }}"
-              message: "{{ msg_body }}"
-              data:
-                push:
-                  sound:
-                    name: "default"
-                    critical: 1
-                    volume: 1.0
+          - if:
+              - condition: template
+                value_template: '{{ mobile_os == "ios" }}'
+            then:
+              # Send a critical iOS notification
+              - action: notify.{{ mobile_id }}
+                data:
+                  title: "🚨 {{ msg_title }}"
+                  message: "{{ msg_body }}"
+                  data:
+                    push:
+                      sound:
+                        name: "default"
+                        critical: 1
+                        volume: 1.0
+            else:
+              # Send a channel notification to the "Critical Notifications" channel
+              # Targeted Android users can set a custom sound for this notification
+              # catagory on their Android device
+              - action: notify.{{ mobile_id }}
+                data:
+                  title: "🚨 {{ msg_title }}"
+                  message: "{{ msg_body }}"
+                  data:
+                    ttl: 0
+                    priority: high
+                    importance: high
+                    sticky: true
+                    persistent: true
+                    channel: "Critical Notification"
+                    color: "red"
+
         # If this is a normal priority, then do this
         else:
           - action: notify.{{ mobile_id }}
