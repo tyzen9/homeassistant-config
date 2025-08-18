@@ -174,7 +174,7 @@ automation:
       # Put this person's PC to sleep
       - action: button.press
         target:
-          entity_id: button.daytona_sleep
+          entity_id: button.padfoot_sleep
 
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   #                                 PERSON 2

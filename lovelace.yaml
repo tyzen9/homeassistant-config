@@ -7,10 +7,3 @@ dashboards:
     icon: mdi:castle
     show_in_sidebar: true
     filename: dashboards/mobile-dashboard.yaml
-
-  lovelace-mobile-dashboard-2:
-    mode: yaml
-    title: NextGen Mobile
-    icon: mdi:flash
-    show_in_sidebar: true
-    filename: dashboards/mobile.yaml

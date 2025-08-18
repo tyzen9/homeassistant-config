@@ -38,7 +38,7 @@ switch:
     name: Exterior - Back Yard Switch Group
     unique_id: exterior_back_yard_switch_group
     entities:
-      - switch.relay_backyard_mandoorlight
+      - switch.ws03_switch
       - switch.relay_backyard_shedwalllights
       - switch.relay_backyard_porchlights
 
