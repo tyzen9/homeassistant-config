@@ -319,3 +319,45 @@ rest_command:
     method: POST
     payload: '{"ps": "1~8~"}'
     verify_ssl: false
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HISTORY STATS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Note: History stats are only kept for the recorder's set purge_keep_days,
+# this is 7 days by default. To move these stats to Long Term Statistics (LTS)
+# we will use a "Utility Meter" below.
+sensor:
+  # ---------------------------------------------------------------------------
+  # This history stats track how many hours the projector is used in the last
+  # 24 hours
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  - platform: history_stats
+    name: History - Projector Use Today
+    unique_id: history_projector_use_today
+    entity_id: binary_sensor.basement_theater_projector_status
+    state: "on"
+    type: time
+    start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+    duration:
+      hours: 24
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# UTILITY METERS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+utility_meter:
+  # ---------------------------------------------------------------------------
+  # These utility meters allow for the long term statistics gathering of how
+  # many times each pump runs per day.  We will use these stats on the
+  # dashboard when displaying graphs/metrics
+  #
+  # Dependencies: (None)
+  # ---------------------------------------------------------------------------
+  projector_use_hours:
+    name: Meter - Projector Use
+    unique_id: meter_projector_use
+    source: sensor.history_projector_use_today
+    tariffs:
+      - peak
+    always_available: true

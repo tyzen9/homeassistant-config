@@ -48,4 +48,4 @@ automation:
       - action: light.turn_on
         entity_id: light.dimmer_wd15_3w_dimmer
         data:
-          brightness_pct: 100
+          brightness_pct: 30

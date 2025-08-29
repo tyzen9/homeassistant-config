@@ -47,7 +47,9 @@ automation:
       - action: switch.turn_on
         target:
           entity_id:
-            - switch.plug_zp8_switch
+            - switch.plug_zp8_switch # Grape Lights
+            - switch.plug_zp10       # Dining Room Cabinet
+
 
   # ---------------------------------------------------------------------------
   # Around sunrise, turn on some kitchen accent lighting
@@ -69,4 +71,5 @@ automation:
       - action: switch.turn_off
         target:
           entity_id:
-            - switch.plug_zp8_switch
+            - switch.plug_zp8_switch # Grape Lights
+            - switch.plug_zp10       # Dining Room Cabinet

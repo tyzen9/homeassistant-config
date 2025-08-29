@@ -1,6 +1,6 @@
 # *****************************************************************************
-# "Daytona" PC Package - This is all the functionality that originates from the
-#    PC named "Daytona"
+# "padfoot" PC Package - This is all the functionality that originates from the
+#    PC named "padfoot"
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com  -  github.com/tyzen9
@@ -31,8 +31,8 @@
 # HELPERS
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 input_button:
-  button_wol_daytona:
-    name: PC Daytona - Wake On LAN
+  button_wol_padfoot:
+    name: PC Padfoot - Wake On LAN
     icon: mdi:sleep-off
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,14 +45,14 @@ automation:
   # Dependencies:
   #  - light.dimmer_wd*_dimmer (INT ESPHome)
   # ---------------------------------------------------------------------------
-  - alias: PC Daytona - Microphone Active Actions
-    id: pc_daytona_microphone_active_actions
+  - alias: PC Padfoot - Microphone Active Actions
+    id: pc_padfoot_microphone_active_actions
     description: "When the PC's microphone is active, quiet Alexa"
     mode: single
     triggers:
       # When the microphone is active
       - trigger: state
-        entity_id: binary_sensor.daytona_microphoneactive
+        entity_id: binary_sensor.padfoot_microphoneactive
         from: "off"
         to: "on"
     actions:
@@ -70,14 +70,14 @@ automation:
   # Dependencies:
   #  - light.dimmer_wd*_dimmer (INT ESPHome)
   # ---------------------------------------------------------------------------
-  - alias: PC Daytona - Microphone Dectivated Actions
-    id: ps_daytona_microphone_deactivated_actions
+  - alias: PC Padfoot - Microphone Dectivated Actions
+    id: ps_padfoot_microphone_deactivated_actions
     description: "When the PC's microphone is deactivated, reset Alexa volumne"
     mode: single
     triggers:
       # When the microphone is deactivated
       - trigger: state
-        entity_id: binary_sensor.daytona_microphoneactive
+        entity_id: binary_sensor.padfoot_microphoneactive
         from: "on"
         to: "off"
     actions:
@@ -95,28 +95,28 @@ automation:
   # Dependencies:
   #  - light.dimmer_wd*_dimmer (INT ESPHome)
   # ---------------------------------------------------------------------------
-  - alias: PD Daytona - Webcam Active Actions
-    id: pc_daytona_webcam_active_actions
+  - alias: PD Padfoot - Webcam Active Actions
+    id: pc_padfoot_webcam_active_actions
     description: "When the PC's webcam is active, set some lighting"
     mode: single
     triggers:
       # When the microphone is active
       - trigger: state
-        entity_id: binary_sensor.daytona_webcamactive
+        entity_id: binary_sensor.padfoot_webcamactive
         from: "off"
         to: "on"
     actions:
       # Define a new scene based on the current state of these RGBW bulbs
       - action: scene.create
         data:
-          scene_id: daytona_premeeting_lighting
+          scene_id: padfoot_premeeting_lighting
           snapshot_entities:
             - light.dimmer_wd14_dimmer
             - light.dimmer_wd07_dimmer
       # Activate the meeting active scene
       - action: scene.turn_on
         target:
-          entity_id: scene.daytona_active_meeting
+          entity_id: scene.padfoot_active_meeting
 
   # ---------------------------------------------------------------------------
   # When this PC's webcam is deactivated, revert the lighting to the previous
@@ -125,14 +125,14 @@ automation:
   # Dependencies:
   #  - light.dimmer_wd*_dimmer (INT ESPHome)
   # ---------------------------------------------------------------------------
-  - alias: PC Daytona - Webcam Dectivated Actions
-    id: pc_daytona_webcam_deactivated_actions
+  - alias: PC Padfoot - Webcam Dectivated Actions
+    id: pc_padfoot_webcam_deactivated_actions
     description: "When the PC's webcam is deactivated, reset some lighing"
     mode: single
     triggers:
       # When the microphone is active
       - trigger: state
-        entity_id: binary_sensor.daytona_webcamactive
+        entity_id: binary_sensor.padfoot_webcamactive
         from: "on"
         to: "off"
         for:
@@ -141,20 +141,20 @@ automation:
       # Revert to the scene that was saved when the microphone turned on
       - action: scene.turn_on
         target:
-          entity_id: scene.daytona_premeeting_lighting
+          entity_id: scene.padfoot_premeeting_lighting
 
   # ---------------------------------------------------------------------------
   # When the PC shuts down, then turn off some accent lighting
   #
   # ---------------------------------------------------------------------------
-  - alias: PC Daytona - Power Off
-    id: pc_daytona_power_off
+  - alias: PC Padfoot - Power Off
+    id: pc_padfoot_power_off
     description: ""
     mode: single
     triggers:
       # When the PC is turned off
       - trigger: state
-        entity_id: sensor.daytona_monitorpowerstate
+        entity_id: sensor.padfoot_monitorpowerstate
         to: "unavailable"
     action:
       - action: script.wled_off
@@ -165,14 +165,14 @@ automation:
   # When the PC turns on, then turn on some accent lighting
   #
   # ---------------------------------------------------------------------------
-  - alias: PC Daytona - Power On
-    id: pc_daytona_power_on
+  - alias: PC Padfoot - Power On
+    id: pc_padfoot_power_on
     description: ""
     mode: single
     triggers:
       # When the PC is turned off
       - trigger: state
-        entity_id: sensor.daytona_monitorpowerstate
+        entity_id: sensor.padfoot_monitorpowerstate
         to: "PowerOn"
     action:
       # Then turn off some accent lighting

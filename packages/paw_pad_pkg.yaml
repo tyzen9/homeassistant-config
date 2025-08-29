@@ -53,7 +53,7 @@ automation:
     max_exceeded: silent
     # When the pad senses a touch
     trigger:
-      - platform: state
+      - trigger: state
         entity_id: binary_sensor.paw_pad_esp01_touch_pad
         to: "on"
     # If the paw pad's light is on, then the button is enabled
@@ -71,6 +71,7 @@ automation:
           only_house_awake: true
           target:
             - group.alexa_inside
+
       # Do not recognize another pad press for a set amount of time
       - delay:
           minutes: 1
@@ -89,7 +90,7 @@ automation:
     mode: single
     trigger:
       # When the light in the Paw Pad is turned off, the button is disabled
-      - platform: state
+      - trigger: state
         entity_id: light.paw_pad_esp01_rgb_led
         from: "on"
         to: "off"
@@ -113,7 +114,7 @@ automation:
     mode: single
     trigger:
       # When the light in the Paw Pad is turned back on
-      - platform: state
+      - trigger: state
         entity_id: light.paw_pad_esp01_rgb_led
         from: "off"
         to: "on"
@@ -137,7 +138,7 @@ automation:
     mode: single
     trigger:
       # When the timer completes
-      - platform: state
+      - trigger: state
         entity_id: timer.paw_pad
         to: "idle"
     action:

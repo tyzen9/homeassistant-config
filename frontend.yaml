@@ -1,1 +1,3 @@
-extra_module_url: /hacsfiles/lovelace-card-mod/card-mod.js
+extra_module_url: 
+  - /hacsfiles/lovelace-card-mod/card-mod.js
+  - /hacsfiles/custom-sidebar/custom-sidebar-yaml.js

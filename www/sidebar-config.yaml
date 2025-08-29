@@ -1,0 +1,110 @@
+title: Elm Assistant
+subtitle: The Theisen House
+order:
+  - item: overview
+    order: 1
+exceptions:
+  - user: 
+    - Steve
+    extend_from: base
+    order:
+      - item: mobile
+        order: 1
+      - item: experimental
+        order: 2        
+      - new_item: true
+        item: Integrations
+        href: "/config/integrations"
+        icon: mdi:puzzle
+        order: 3
+      - new_item: true
+        item: Entities
+        href: "/config/entities"
+        icon: mdi:hexagon-multiple
+        order: 4
+      - new_item: true
+        item: Automations
+        href: "/config/automation"
+        icon: mdi:robot
+        order: 5
+
+      - item: hacs
+        order: 6
+        notification: |
+          [[[
+            const outdatedHacsEntities = Object.values(entities.update).filter(
+              (entity) => entity.platform === 'hacs' && is_state(entity.entity_id, 'on')
+            );
+            return outdatedHacsEntities.length || '';
+          ]]]
+      - new_item: true
+        item: ESPHome
+        href: https://esphome.tyzen9.com
+        icon: mdi:chip
+        target: _blank
+        bottom: true
+        order: 7
+
+      - new_item: true
+        item: VSCode Server
+        href: https://vscode.tyzen9.com
+        icon: mdi:microsoft-visual-studio-code
+        target: _blank
+        bottom: true
+        order: 8
+      - item: logbook
+        bottom: true
+        order: 9
+      - new_item: true
+        item: Logs
+        bottom: true
+        href: "/config/logs"
+        icon: mdi:math-log
+        order: 10
+      - item: developer tools
+        name: Dev tools
+        icon: mdi:tools
+        bottom: true
+        order: 11
+      - item: settings
+        bottom: true
+        order: 12
+      - item: history
+        hide: true
+      - item: snapshots
+        hide: true
+      - item: backups
+        hide: true
+      - item: map
+        hide: true
+      - item: energy
+        hide: true
+      - item: media
+        hide: true
+  - not_user: 
+    - Steve
+    extend_from: base
+    order:
+      - item: history
+        hide: true
+      - item: snapshots
+        hide: true
+      - item: backups
+        hide: true
+      - item: map
+        hide: true
+      - item: hacs
+        hide: true
+      - item: energy
+        hide: true
+      - item: media
+        hide: true
+      - item: developer tools
+        hide: true
+      - item: logbook
+        hide: true
+      - item: settings
+        hide: true
+      - item: experimental
+        hide: true
+id: mobile-sidebarconfig

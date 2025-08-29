@@ -18,30 +18,39 @@ zone: !include zone.yaml
 frontend: !include frontend.yaml
 lovelace: !include lovelace.yaml
 
-# Enable InfluxDB
-influxdb:
-  api_version: 2
-  ssl: false
-  host: appserver.lan
-  port: 8087
-  token: !secret influxdb_token
-  organization: tyzen9
-  bucket: homeassistant
-  tags:
-    source: HA
-  tags_attributes:
-    - friendly_name
-  default_measurement: units
-  # exclude:
-  #   entities:
-  #     - zone.home
-  #   domains:
-  #     - persistent_notification
-  #     - person
-  include:
-    domains:
-      - sensor
-      - binary_sensor
-      - sun
-    # entities:
-    #   - weather.home
+# Setup long-term data storage
+influxdb: !include victoriametrics.yaml
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 192.168.3.2 # NPM Reverse Proxy IP
+    - 127.0.0.1
+
+# # Enable InfluxDB
+# influxdb:
+#   api_version: 2
+#   ssl: false
+#   host: appserver.lan
+#   port: 8087
+#   token: !secret influxdb_token
+#   organization: tyzen9
+#   bucket: homeassistant
+#   tags:
+#     source: HA
+#   tags_attributes:
+#     - friendly_name
+#   default_measurement: units
+#   # exclude:
+#   #   entities:
+#   #     - zone.home
+#   #   domains:
+#   #     - persistent_notification
+#   #     - person
+#   include:
+#     domains:
+#       - sensor
+#       - binary_sensor
+#       - sun
+#     # entities:
+#     #   - weather.home
