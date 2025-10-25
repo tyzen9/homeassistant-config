@@ -67,7 +67,7 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_2_diun_digest_update
+        entity_id: sensor.host_2_diun_digest_update 
     sensor:
       - name: "Host 2 - Diun - Latest Digest"
         unique_id: "host_2_diun_latest_digest"

@@ -63,11 +63,11 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_2_esphome_diun_digest
+        entity_id: sensor.host_2_esphome_digest_update
     sensor:
       - name: "Host 2 - ESPHome - Latest Digest"
         unique_id: "host_2_esphome_latest_digest"
-        state: "{{ states('sensor.host_2_esphome_diun_digest') }}"
+        state: "{{ states('sensor.host_2_esphome_digest_update') }}"
 
   # ---------------------------------------------------------------------------
   # This sensor determines the update status of this container/image and builds
