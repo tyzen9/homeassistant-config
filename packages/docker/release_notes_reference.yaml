@@ -1,0 +1,81 @@
+# *****************************************************************************
+# Diun Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com - github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# Dependencies
+#   - marcos.jinja - cool way to reduce jinja code through macros
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Helpers
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_text:
+  esphome_release_notes_url:
+    name: ESPHome Release Notes URL
+    initial: https://esphome.io/changelog
+    icon: mdi:file-document
+
+  diun_release_notes_url:
+    name: Diun Release Notes URL
+    initial: https://crazymax.dev/diun/changelog/
+    icon: mdi:file-document
+
+  glances_release_notes_url:
+    name: Glances Release Notes URL
+    initial: https://github.com/nicolargo/glances/releases
+    icon: mdi:file-document
+
+  grafana_release_notes_url:
+    name: Grafana Release Notes URL
+    initial: https://github.com/grafana/grafana/releases
+    icon: mdi:file-document
+
+  homeassistant_release_notes_url:
+    name: Home Assistant Release Notes URL
+    initial: https://www.home-assistant.io/blog/categories/release-notes/
+    icon: mdi:file-document
+
+  mqtt_release_notes_url:
+    name: MQTT Release Notes URL
+    initial: https://mosquitto.org/blog/categories/releases/
+    icon: mdi:file-document
+
+  nut_release_notes_url:
+    name: Nut Release Notes URL
+    initial: https://github.com/networkupstools/nut/releases
+    icon: mdi:file-document
+  
+  socket_proxy_release_notes_url:
+    name: Socket Proxy Release Notes URL
+    initial: https://github.com/linuxserver/docker-socket-proxy/releases
+    icon: mdi:file-document
+  
+  victoria_metrics_release_notes_url:
+    name: Victoria Metrics Release Notes URL
+    initial: https://github.com/VictoriaMetrics/VictoriaMetrics/releases
+    icon: mdi:file-document
+
+  vscode_release_notes_url:
+    name: VSCode Release Notes URL
+    initial: https://code.visualstudio.com/updates
+    icon: mdi:file-document

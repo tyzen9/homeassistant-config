@@ -96,7 +96,8 @@ template:
             {{ states('sensor.host_2_socket_proxy_current_digest') | default('unknown') }}
           latest_digest: >
             {{ states('sensor.host_2_socket_proxy_latest_digest') | default('unknown') }}
-          release_notes: "https://code.visualstudio.com/updates"
+          release_notes: >
+            {{ states('input_text.socket_proxy_release_notes_url') | default('unknown') }}
           memory: >
             {{ states('sensor.host_2_socket_proxy_memory') | default('unknown') }}
           cpu: >

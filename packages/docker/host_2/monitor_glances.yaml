@@ -109,7 +109,8 @@ template:
             {{ states('sensor.host_2_glances_current_digest') | default('unknown') }}
           latest_digest: >
             {{ states('sensor.host_2_glances_latest_digest') | default('unknown') }}
-          release_notes: "https://code.visualstudio.com/updates"
+          release_notes: >
+            {{ states('input_text.glances_release_notes_url') | default('unknown') }}
           memory: >
             {{ states('sensor.host_2_glances_memory') | default('unknown') }}
           cpu: >

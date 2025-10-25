@@ -100,7 +100,8 @@ template:
             {{ states('sensor.host_2_diun_current_digest') | default('unknown') }}
           latest_digest: >
             {{ states('sensor.host_2_diun_latest_digest') | default('unknown') }}
-          release_notes: "https://crazymax.dev/diun/changelog/"
+          release_notes: >
+            {{ states('input_text.diun_release_notes_url') | default('unknown') }}
           memory: >
             {{ states('sensor.host_2_diun_memory') | default('unknown') }}
           cpu: >

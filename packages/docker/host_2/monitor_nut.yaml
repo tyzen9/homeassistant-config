@@ -130,7 +130,8 @@ template:
             {{ states('sensor.host_2_nut_current_digest') | default('unknown') }}
           latest_digest: >
             {{ states('sensor.host_2_nut_latest_digest') | default('unknown') }}
-          release_notes: "https://code.visualstudio.com/updates"
+          release_notes: >
+            {{ states('input_text.nut_release_notes_url') | default('unknown') }}
           memory: >
             {{ states('sensor.host_2_nut_memory') | default('unknown') }}
           cpu: >
