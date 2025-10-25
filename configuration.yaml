@@ -5,6 +5,13 @@ homeassistant:
 # Loads default set of HA integrations (Do not remove)
 default_config:
 
+logger:
+  default: warning
+  logs:
+  #  homeassistant.components.glances: debug
+    homeassistant.components.command_line: debug
+  #   homeassistant.components.rest: debug
+
 # Automations managed in the UI are stored here
 automation: !include automations.yaml
 
@@ -21,8 +28,10 @@ lovelace: !include lovelace.yaml
 # Setup long-term data storage
 influxdb: !include victoriametrics.yaml
 
+monitor_docker: !include monitor_docker.yaml
+
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 192.168.3.2 # NPM Reverse Proxy IP
+    - 192.168.3.5 # NPM Reverse Proxy IP
     - 127.0.0.1
