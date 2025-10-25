@@ -7,3 +7,10 @@ dashboards:
     icon: mdi:castle
     show_in_sidebar: true
     filename: dashboards/mobile-dashboard.yaml
+
+  lovelace-tablet-dashboard:
+    mode: yaml
+    title: Tablet Dashboard
+    icon: mdi:tablet
+    show_in_sidebar: true
+    filename: dashboards/tablet-dashboard.yaml
