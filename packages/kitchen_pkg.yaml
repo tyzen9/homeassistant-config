@@ -41,14 +41,17 @@ automation:
       # Around sunset
       - platform: sun
         event: sunset
-        offset: "01:00:00"
+        offset: "-01:00:00"
     action:
       # Accent lights in the kitchen
       - action: switch.turn_on
         target:
           entity_id:
             - switch.plug_zp8_switch # Grape Lights
-            - switch.plug_zp10       # Dining Room Cabinet
+      - action: light.turn_on
+        target:
+          entity_id:
+            - light.plug_dimmer_zp04 # Dining Room Cabinet
 
 
   # ---------------------------------------------------------------------------
@@ -65,11 +68,14 @@ automation:
       # Around sunset
       - platform: sun
         event: sunrise
-        offset: "-02:00:00"
+        offset: "+01:00:00"
     action:
       # Accent lights in the kitchen
       - action: switch.turn_off
         target:
           entity_id:
             - switch.plug_zp8_switch # Grape Lights
-            - switch.plug_zp10       # Dining Room Cabinet
+      - action: light.turn_off
+        target:
+          entity_id:
+            - light.plug_dimmer_zp04 # Dining Room Cabinet

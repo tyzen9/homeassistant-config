@@ -45,6 +45,14 @@ automation:
       - platform: homeassistant
         event: start
     action:
+      # Create a dashboard notification
+      - action: script.ha_mobile_notification
+        data:
+          title: "Home Assistant Restart"
+          message: "A restart has been completed"
+          presence: either
+          target:
+            - person_1
       # Make an verbal announcement
       - action: script.amazon_device_announcement
         data:

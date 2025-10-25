@@ -174,7 +174,7 @@ automation:
       # Put this person's PC to sleep
       - action: button.press
         target:
-          entity_id: button.padfoot_sleep
+          entity_id: button.snape_sleep
 
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   #                                 PERSON 2
@@ -205,6 +205,18 @@ automation:
           title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has left home"
           presence: away
+          target:
+            - person_1
+
+  - alias: Frigate Person Alert
+    trigger:
+      platform: mqtt
+      topic: frigate/front_porch/person
+    action:
+      - action: script.ha_mobile_notification
+        data:
+          title: "Front Porch Person Detected"
+          presence: either
           target:
             - person_1
 

@@ -288,7 +288,7 @@
   icon: mdi:brightness-3
   metadata: {}
 - id: '1725384752059'
-  name: Daytona Active Meeting
+  name: Snape Active Meeting
   entities:
     light.dimmer_wd07_dimmer:
       supported_color_modes:

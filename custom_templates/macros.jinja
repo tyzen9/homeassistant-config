@@ -1,0 +1,100 @@
+{#
+# *****************************************************************************
+# Jinja Macros
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com  -  github.com/tyzen9
+#
+# Usage:
+#   1. Create a custom/templates/include_macros.yaml file that contains at 
+#      least one sensor:
+#       - sensor:
+#           - name: "Load Jinja Macros"
+#             state: "loaded"
+#   2. Place this .jinja file in a config/custom_templates folder
+#   3. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  template: !include_dir_merge_list templates
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage, and use the macros
+#
+#  Example:
+#           state: >-
+#              {% from 'macros.jinja' import human_readable_disk_space %}
+#              {{ human_readable_disk_space(states('sensor.localhost_hostroot_disk_free')) }}
+#
+#
+#  NOTE: Reload Template Entities after making and saving changes in this file
+#
+# *****************************************************************************
+#}
+
+{% macro init_macro() %}
+  init
+{%- endmacro %}
+
+
+{# -------------------------------------------------------------
+ This is used to convert a load value from Glances to a load
+ percentage based on an 8 core processor
+ #-------------------------------------------------------------- #}
+{% macro cpu_load_calc_8core(load) -%}
+  {% if load in ['unknown', 'unavailable', None] %}
+    0
+  {% else %}
+    {{ ((load | float) / 8 * 100) | round(0) }}
+  {% endif %}
+{%- endmacro %}
+
+{# -------------------------------------------------------------
+ This is used to convert a GiB value to a human readable version
+ Making things like HDD space free easier to read
+ #-------------------------------------------------------------- #}
+{% macro human_readable_disk_space(gb) -%}
+  {% if gb in ['unknown', 'unavailable', None] %}
+    Unknown
+  {% else %}
+    {% set gb = gb | float(0) %}
+    {% if gb >= 1024 %}
+      {{ (gb / 1024) | round(2) }} TB
+    {% elif gb >= 1 %}
+      {{ gb | round(2) }} GB
+    {% else %}
+      {{ (gb * 1024) | round(2) }} MB
+    {% endif %}
+  {% endif %}
+{%- endmacro %}
+
+
+{# -------------------------------------------------------------
+ This is used to look at a source entity_id who's state is an image
+ name.  If it subset matches a name passed in, then we get the
+ digest attribute from the source entity.
+
+ Example image_name: docker.io/crazymax/swarm-cronjob:0.2.1
+#}
+{% macro get_diun_mqtt_image_digest(entity_id, match_string) %}
+  {% set image_name = states(entity_id) %}
+  {% if image_name is string and match_string in image_name %}
+    {{ state_attr(entity_id, 'digest') }}
+  {% else %}
+    unknown
+  {% endif %}
+{% endmacro %}
+
+
+
+{# -------------------------------------------------------------
+ This is used to compare a current version number (string)) to
+ a latest version number. It will return yes or no based on the
+ rules as to if an update is available.
+ #-------------------------------------------------------------- #}
+{% macro is_update_available(current_ver, latest_ver) %}
+  {% if current_ver != 'unknown' and latest_ver != 'unknown' and current_ver != latest %}
+    yes
+  {% elif current_ver != 'unknown' and latest_ver == 'unknown' %}
+    no
+  {% else %}
+    no
+  {% endif %}
+{% endmacro %}

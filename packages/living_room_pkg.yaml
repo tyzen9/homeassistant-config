@@ -198,68 +198,68 @@ automation:
             data:
               brightness: "{{ int(state_attr('light.dimmer_wd01_dimmer', 'brightness')) | int(155) }}"
 
-  # ---------------------------------------------------------------------------
-  # Turn on accent lights in the living room when motion detection occurs
-  #
-  # Dependencies:
-  #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
-  #  - light.rgbw_livingroom_entcenter (INT Shelly)
-  #  - light.wled_livingroom_desk (INT WLED)
-  # ---------------------------------------------------------------------------
-  - alias: Living Room - Motion Decected Lighting On
-    id: living_room_motion_detected_lighting_on
-    description: "Turn on accent lights in the living room when motion detection occurs"
-    mode: single
-    triggers:
-      # When a motion sensor detects motion
-      - trigger: state
-        entity_id: binary_sensor.motion_livingroom_iaszone
-        to: "on"
-    conditions:
-      # If motion detected lighting is enabled
-      condition: state
-      entity_id: input_boolean.living_room_motion_lighting_enabled
-      state: "on"
-    action:
-      # Anytime a trigger trips, reset and start the lighting timer
-      - action: timer.start
-        target:
-          entity_id:
-            - timer.living_room_accent_lights
-      # Turn on the living room accent lighting
-      - action: light.turn_on
-        target:
-          entity_id:
-          #  - light.rgbw_livingroom_entcenter
-            - light.wled_livingroom_desk
+  # # ---------------------------------------------------------------------------
+  # # Turn on accent lights in the living room when motion detection occurs
+  # #
+  # # Dependencies:
+  # #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
+  # #  - light.rgbw_livingroom_entcenter (INT Shelly)
+  # #  - light.wled_livingroom_desk (INT WLED)
+  # # ---------------------------------------------------------------------------
+  # - alias: Living Room - Motion Decected Lighting On
+  #   id: living_room_motion_detected_lighting_on
+  #   description: "Turn on accent lights in the living room when motion detection occurs"
+  #   mode: single
+  #   triggers:
+  #     # When a motion sensor detects motion
+  #     - trigger: state
+  #       entity_id: binary_sensor.motion_livingroom_iaszone
+  #       to: "on"
+  #   conditions:
+  #     # If motion detected lighting is enabled
+  #     condition: state
+  #     entity_id: input_boolean.living_room_motion_lighting_enabled
+  #     state: "on"
+  #   action:
+  #     # Anytime a trigger trips, reset and start the lighting timer
+  #     - action: timer.start
+  #       target:
+  #         entity_id:
+  #           - timer.living_room_accent_lights
+  #     # Turn on the living room accent lighting
+  #     - action: light.turn_on
+  #       target:
+  #         entity_id:
+  #         #  - light.rgbw_livingroom_entcenter
+  #           - light.wled_livingroom_desk
 
-  # ---------------------------------------------------------------------------
-  # Turn off accent lights in the living room when the motion lights timer
-  # expires
-  #
-  # Dependencies:
-  #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
-  #  - light.rgbw_livingroom_entcenter (INT Shelly)
-  #  - light.wled_livingroom_desk (INT WLED)
-  # ---------------------------------------------------------------------------
-  - alias: Living Room - Motion Decected Lighting Off
-    id: living_room_motion_detected_lighting_off
-    description: "Turn off accent lights in the living room when motion detection expires"
-    mode: single
-    triggers:
-      # When the motion detected lighting timer expires
-      - trigger: state
-        entity_id: timer.living_room_accent_lights
-        to: "idle"
-    conditions:
-      # If motion detected lighting is enabled
-      condition: state
-      entity_id: input_boolean.living_room_motion_lighting_enabled
-      state: "on"
-    action:
-      # Turn off the living room accent lighting
-      - action: light.turn_off
-        target:
-          entity_id:
-          #  - light.rgbw_livingroom_entcenter
-            - light.wled_livingroom_desk
+  # # ---------------------------------------------------------------------------
+  # # Turn off accent lights in the living room when the motion lights timer
+  # # expires
+  # #
+  # # Dependencies:
+  # #  - binary_sensor.motion_livingroom_iaszone (INT Zigbee)
+  # #  - light.rgbw_livingroom_entcenter (INT Shelly)
+  # #  - light.wled_livingroom_desk (INT WLED)
+  # # ---------------------------------------------------------------------------
+  # - alias: Living Room - Motion Decected Lighting Off
+  #   id: living_room_motion_detected_lighting_off
+  #   description: "Turn off accent lights in the living room when motion detection expires"
+  #   mode: single
+  #   triggers:
+  #     # When the motion detected lighting timer expires
+  #     - trigger: state
+  #       entity_id: timer.living_room_accent_lights
+  #       to: "idle"
+  #   conditions:
+  #     # If motion detected lighting is enabled
+  #     condition: state
+  #     entity_id: input_boolean.living_room_motion_lighting_enabled
+  #     state: "on"
+  #   action:
+  #     # Turn off the living room accent lighting
+  #     - action: light.turn_off
+  #       target:
+  #         entity_id:
+  #         #  - light.rgbw_livingroom_entcenter
+  #           - light.wled_livingroom_desk

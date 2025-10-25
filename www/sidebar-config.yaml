@@ -1,14 +1,16 @@
 title: Elm Assistant
 subtitle: The Theisen House
-order:
-  - item: overview
-    order: 1
+# order:
+#   - item: overview
+#     order: 1
 exceptions:
   - user: 
     - Steve
     extend_from: base
     order:
       - item: mobile
+        order: 1
+      - item: tablet
         order: 1
       - item: experimental
         order: 2        
@@ -52,9 +54,9 @@ exceptions:
         target: _blank
         bottom: true
         order: 8
-      - item: logbook
-        bottom: true
-        order: 9
+      # - item: logbook
+      #   bottom: true
+      #   order: 9
       - new_item: true
         item: Logs
         bottom: true
@@ -71,10 +73,10 @@ exceptions:
         order: 12
       - item: history
         hide: true
-      - item: snapshots
-        hide: true
-      - item: backups
-        hide: true
+      # - item: snapshots
+      #   hide: true
+      # - item: backups
+      #   hide: true
       - item: map
         hide: true
       - item: energy

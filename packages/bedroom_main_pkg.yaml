@@ -97,7 +97,7 @@ automation:
   # Around sunrise, turn on some main bedroom accent lighting
   #
   # Dependencies:
-  #  - scene.* (UI Scene)
+  #  - light.* 
   # ---------------------------------------------------------------------------
   - alias: Bedroom Main - Acccent Lighting Off
     id: bedroom_main_accent_lighting_off
@@ -114,3 +114,28 @@ automation:
         target:
           entity_id:
             - light.zl1
+
+  # ---------------------------------------------------------------------------
+  # At a given time, turn the associated plug off and then back on after a delay.
+  # This is used to reset a window fan so we don't freeze
+  #
+  # NOTE: This is a seasonal automation, comment this out when it is not
+  #       "window fan" season. 
+  #
+  # Dependencies:
+  #  - switch.*
+  # ---------------------------------------------------------------------------
+  - alias: Bedroom Main - Seasonal Turn off Window Fan
+    description: "Turn off the window fan plug 5 seconds, then turn it back on"
+    trigger:
+      - platform: time
+        at: "04:30:00"
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.plug_zp10
+      - delay: "00:00:05"
+      - service: switch.turn_on
+        target:
+          entity_id: switch.plug_zp10
+    mode: single
