@@ -76,12 +76,6 @@ command_line:
   - sensor:
       name: "Host 2 - NUT - Current Version"
       unique_id: "host_2_nut_current_version"
-      # command: >-
-      #   bash -c '(
-      #     echo "GET VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version"
-      #     echo "LOGOUT"
-      #   ) | nc {{ states("sensor.secret_host_2_hostname") }} {{ states("sensor.secret_host_2_nut_api_port") }} |
-      #   awk "/^VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version/ { gsub(/\"/, \"\"); print \"v\" \$4 }"'
       command: >
         bash -c '(
           echo "GET VAR ups-1 driver.version"
@@ -89,6 +83,13 @@ command_line:
         ) | nc filch.lan 3493 |
         awk "/^VAR ups-1 driver.version/ { gsub(/\"/, \"\"); print \"v\" \$4 }"'
       scan_interval: 7200
+
+      # command: >-
+      #   bash -c '(
+      #     echo "GET VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version"
+      #     echo "LOGOUT"
+      #   ) | nc {{ states("sensor.secret_host_2_hostname") }} {{ states("sensor.secret_host_2_nut_api_port") }} |
+      #   awk "/^VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version/ { gsub(/\"/, \"\"); print \"v\" \$4 }"'
 
 template:
   # ---------------------------------------------------------------------------  #
