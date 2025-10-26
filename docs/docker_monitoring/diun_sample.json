@@ -1,0 +1,21 @@
+{
+  "diun_version": "v4.30.0",
+  "hostname": "59e98823761e",
+  "status": "update",
+  "provider": "docker",
+  "image": "lscr.io/linuxserver/code-server:latest",
+  "hub_link": "https://github.com/linuxserver/docker-code-server/packages",
+  "mime_type": "application/vnd.oci.image.index.v1+json",
+  "digest": "sha256:c7c66416238b70312df90b5936ea4adb6108552d866dd00a804c86c599b2ab6c",
+  "created": "2025-10-25T20:24:16.592641982Z",
+  "platform": "linux/amd64",
+  "metadata": {
+    "ctn_command": "/init",
+    "ctn_createdat": "2025-10-23 12:58:28 -0400 EDT",
+    "ctn_id": "cbebe90c141fcc91438c8ca6ef73d22c0c0250538534673c66b5e333bc86e2a5",
+    "ctn_names": "vscode",
+    "ctn_size": "0B",
+    "ctn_state": "running",
+    "ctn_status": "Up 24 hours"
+  }
+}
