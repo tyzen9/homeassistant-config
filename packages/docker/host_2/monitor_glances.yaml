@@ -42,7 +42,7 @@ sensor:
   - platform: rest
     name: "Host 2 - Glances - Current Digest"
     unique_id: "host_2_glances_current_digest"
-    resource_template: "{{ states('sensor.secret_host_2_socketproxy_url') }}/images/nicolargo/glances/json"
+    resource_template: "{{ states('sensor.secret_host_2_socketproxy_url') }}/images/nicolargo/glances:4.3.3/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
