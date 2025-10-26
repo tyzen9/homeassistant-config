@@ -9,8 +9,8 @@ logger:
   default: warning
   logs:
   #  homeassistant.components.glances: debug
-    homeassistant.components.command_line: debug
-  #   homeassistant.components.rest: debug
+  #  homeassistant.components.command_line: debug
+  #  homeassistant.components.rest: debug
 
 # Automations managed in the UI are stored here
 automation: !include automations.yaml
@@ -28,8 +28,10 @@ lovelace: !include lovelace.yaml
 # Setup long-term data storage
 influxdb: !include victoriametrics.yaml
 
+# Setup monitor_docker to get container run-time stats
 monitor_docker: !include monitor_docker.yaml
 
+# This is needed for the NPM Proxy
 http:
   use_x_forwarded_for: true
   trusted_proxies:
