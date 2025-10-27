@@ -1,5 +1,5 @@
 # *****************************************************************************
-# MQTT Package
+# Diun Package
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com - github.com/tyzen9
@@ -21,6 +21,9 @@
 # Some Examples:
 #   - ESPHome: https://www.home-assistant.io/integrations/esphome/
 #
+# Dependencies
+#   - marcos.jinja - cool way to reduce jinja code through macros
+#
 # *****************************************************************************
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,20 +37,28 @@ sensor:
   #
   # Dependencies:
   #  - socket-proxy (see https://github.com/tyzen9/docker-insight)
-  #  - secrets.yaml - used to store host names, etc.
+  #  - secrets.yaml - used to store host names, socket-proxy URL, etc.
   #  - secret_sensor_pkg.yaml - used to convert secret date to sensors 
   #       sensor.secret_host_1_socketproxy_url
   #
   # ---------------------------------------------------------------------------
   - platform: rest
-    name: "Host 2 - MQTT - Current Digest"
-    unique_id: "host_2_mqtt_current_digest"
-    resource_template: "{{ states('sensor.secret_host_2_socketproxy_url') }}/images/eclipse-mosquitto/json"
+    name: "Host 1 - Diun - Current Digest"
+    unique_id: "host_1_diun_current_digest"
+    resource_template: "http://{{ states('sensor.secret_host_1_hostname') }}:2375/images/crazymax/diun/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
-    json_attributes_path: "$.Config"
+    json_attributes_path: "$.Config.Labels"
     json_attributes:
-      - Env
+      - org.opencontainers.image.created
+      - org.opencontainers.image.version
+      - org.opencontainers.image.source
+      - org.opencontainers.image.vendor
+      - org.opencontainers.image.version
+      - org.opencontainers.image.title
+      - org.opencontainers.image.description
+      # add other label keys you want to extract
+
 
 template:
   # ---------------------------------------------------------------------------  #
@@ -56,54 +67,49 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_2_mqtt_digest_update
+        entity_id: sensor.host_1_diun_digest_update 
     sensor:
-      - name: "Host 2 - MQTT - Latest Digest"
-        unique_id: "host_2_mqtt_latest_digest"
-        state: "{{ states('sensor.host_2_mqtt_digest_update') }}"
+      - name: "Host 1 - Diun - Latest Digest"
+        unique_id: "host_1_diun_latest_digest"
+        state: "{{ states('sensor.host_1_diun_digest_update') }}"
 
   # ---------------------------------------------------------------------------
   # This sensor determines the update status of this container/image and builds
   # a list of attributes useful for displaying on the dashboard
   # ---------------------------------------------------------------------------
   - sensor:
-      - name: "Host 2 - MQTT - Update Summary"
-        unique_id: "host_2_mqtt_update_summary"
+      - name: "Host 1 - Diun - Update Summary"
+        unique_id: "host_1_diun_update_summary"
         state: >
           {% from 'macros.jinja' import is_update_available %}
-          {{ is_update_available(states('sensor.host_2_mqtt_current_digest'), states('sensor.host_2_mqtt_latest_digest')) }}
+          {{ is_update_available(states('sensor.host_1_diun_current_digest'), states('sensor.host_1_diun_latest_digest')) }}
         attributes:
           app_name: >
-            mqtt
+            Diun
           version: >
-            {% set env = state_attr('sensor.host_2_mqtt_current_digest', 'Env') %}
-            {% if env %}
-              {% set version = env | select('match', '^VERSION=') | list | first | default('') %}
-              {{ version.split('=')[1] if version else 'unknown' }}
-            {% else %}
-              unknown
-            {% endif %}
+            {{ state_attr('sensor.host_1_diun_current_digest', 'org.opencontainers.image.version') | default('unknown') }}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_2_mqtt_state') | default('unknown') }}
+            {{ states('sensor.host_1_diun') | default('unknown') }}
           status: >
-            {{ states('sensor.host_2_mqtt_status') | default('unknown') }}
+            {{ state_attr('sensor.host_1_diun', 'status') }}
           health: >
-            {{ states('sensor.sensor.host_2_mqtt_health') | default('unknown') }}
-          current_digest: >
-            {{ states('sensor.host_2_mqtt_current_digest') | default('unknown') }}
-          latest_digest: >
-            {{ states('sensor.host_2_mqtt_latest_digest') | default('unknown') }}
-          release_notes: >
-            {{ states('input_text.mqtt_release_notes_url') | default('unknown') }}
+            {{ state_attr('sensor.host_1_diun', 'health') }}
           memory: >
-            {{ states('sensor.host_2_mqtt_memory') | default('unknown') }}
+            {{ state_attr('sensor.host_1_diun', 'memory') }}
           cpu: >
-            {{ states('sensor.host_2_mqtt_cpu') | default('unknown') }}
+            {{ state_attr('sensor.host_1_diun', '1cpu_percentage') }}
+          current_digest: >
+            {{ states('sensor.host_1_diun_current_digest') | default('unknown') }}
+          latest_digest: >
+            {{ states('sensor.host_1_diun_latest_digest') | default('unknown') }}
+          release_notes: >
+            {{ states('input_text.diun_release_notes_url') | default('unknown') }}
+          host: > 
+            {{ states('sensor.secret_host_1_hostname') | default('unknown') }}
         icon: >
           {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AUTOMATIONS
@@ -112,35 +118,35 @@ automation:
   # ---------------------------------------------------------------------------
   # Generate notification(s) when an update for this container is available
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - MQTT - Update Notification"
-    id: host_2_mqtt_update_notification
+  - alias: "Host 1 - Diun - Update Notification"
+    id: host_1_diun_update_notification
     description: "Create a dashboard notifications when this container is ready for an update"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_mqtt_update_summary
+      entity_id: sensor.host_1_diun_update_summary
       to: 'yes'
     action:
       # Create a dashboard notification
       - service: persistent_notification.create
         data:
-          title: "MQTT Update Available"
+          title: "Diun Update Available"
           message: >
-            A new version of MQTT is available (via Docker/Portainer)
-          notification_id: host_2_mqtt_update_persistant_notification
+            A new version of Diun is available (via Docker/Portainer)
+          notification_id: host_1_diun_update_persistant_notification
 
   # ---------------------------------------------------------------------------
   # Clear notification(s) when this container has been updated
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - MQTT - Clear Update Notification"
-    id: host_2_mqtt_clear_update_notification
+  - alias: "Host 1 - Diun - Clear Update Notification"
+    id: host_1_diun_clear_update_notification
     description: "Clear the dashboard notification when this container is updated"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_mqtt_update_summary
+      entity_id: sensor.host_1_diun_update_summary
       to: 'no'
     action:
       - service: persistent_notification.dismiss
         data:
-          notification_id: host_2_mqtt_update_persistant_notification
+          notification_id: host_1_diun_update_persistant_notification

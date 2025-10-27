@@ -1,5 +1,5 @@
 # *****************************************************************************
-# Grafana Package
+# ESPHome Package
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com - github.com/tyzen9
@@ -40,9 +40,9 @@ sensor:
   #
   # ---------------------------------------------------------------------------
   - platform: rest
-    name: "Host 2 - Grafana - Current Digest"
-    unique_id: "host_2_grafana_current_digest"
-    resource_template: "{{ states('sensor.secret_host_2_socketproxy_url') }}/images/grafana/grafana/json"
+    name: "Host 2 - ESPHome - Current Digest"
+    unique_id: "host_2_esphome_current_digest"
+    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/ghcr.io/esphome/esphome/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
@@ -56,24 +56,6 @@ sensor:
       - org.opencontainers.image.description
       # add other label keys you want to extract
 
-  # ---------------------------------------------------------------------------
-  # This rest call retreives JSON associated to this container from its API
-  # health endpoint, and parses out the current version number
-  #
-  # Hint: post the url into a browser or postman to review the provided JSON
-  # ---------------------------------------------------------------------------
-  - platform: rest
-    name: Host 2 - Grafana - Current Version
-    unique_id: "host_2_grafana_current_version"
-    resource_template: "{{ states('sensor.secret_host_2_grafana_url') }}/api/health"
-    method: GET
-    headers:
-      Accept: application/json
-      # Add authorization header if needed, e.g.
-      # Authorization: Bearer YOUR_API_TOKEN
-    value_template: "{{ value_json.version }}"
-    scan_interval: 3600  # Check once every hour (adjust as needed)
-
 template:
   # ---------------------------------------------------------------------------  #
   # This TRIGGERED sensor waches for digest updates in the Diun update handler for 
@@ -81,45 +63,47 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_2_grafana_digest_update
+        entity_id: sensor.host_2_esphome_digest_update
     sensor:
-      - name: "Host 2 - Grafana - Latest Digest"
-        unique_id: "host_2_grafana_latest_digest"
-        state: "{{ states('sensor.host_2_grafana_digest_update') }}"
+      - name: "Host 2 - ESPHome - Latest Digest"
+        unique_id: "host_2_esphome_latest_digest"
+        state: "{{ states('sensor.host_2_esphome_digest_update') }}"
 
   # ---------------------------------------------------------------------------
   # This sensor determines the update status of this container/image and builds
   # a list of attributes useful for displaying on the dashboard
   # ---------------------------------------------------------------------------
   - sensor:
-      - name: "Host 2 - Grafana - Update Summary"
-        unique_id: "host_2_grafana_update_summary"
+      - name: "Host 2 - ESPHome - Update Summary"
+        unique_id: "host_2_esphome_update_summary"
         state: >
           {% from 'macros.jinja' import is_update_available %}
-          {{ is_update_available(states('sensor.host_2_grafana_current_digest'), states('sensor.host_2_grafana_latest_digest')) }}
+          {{ is_update_available(states('sensor.host_2_esphome_current_digest'), states('sensor.host_2_esphome_latest_digest')) }}
         attributes:
           app_name: >
-            grafana
+            ESPHome
           version: >
-            {{ states('sensor.host_2_grafana_current_version') | default('unknown') }}
+            {{ state_attr('sensor.host_2_esphome_current_digest', 'org.opencontainers.image.version') | default('unknown')}}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_2_grafana_state') | default('unknown') }}
+            {{ states('sensor.host_2_esphome') | default('unknown') }}
           status: >
-            {{ states('sensor.host_2_grafana_status') | default('unknown') }}
+            {{ state_attr('sensor.host_2_esphome', 'status') }}
           health: >
-            {{ states('sensor.sensor.host_2_grafana_health') | default('unknown') }}
-          current_digest: >
-            {{ states('sensor.host_2_grafana_current_digest') | default('unknown') }}
-          latest_digest: >
-            {{ states('sensor.host_2_grafana_latest_digest') | default('unknown') }}
-          release_notes: >
-            {{ states('input_text.grafana_release_notes_url') | default('unknown') }}
+            {{ state_attr('sensor.host_2_esphome', 'health') }}
           memory: >
-            {{ states('sensor.host_2_grafana_memory') | default('unknown') }}
+            {{ state_attr('sensor.host_2_esphome', 'memory') }}
           cpu: >
-            {{ states('sensor.host_2_grafana_cpu') | default('unknown') }}
+            {{ state_attr('sensor.host_2_esphome', '1cpu_percentage') }}
+          current_digest: >
+            {{ states('sensor.host_2_esphome_current_digest') | default('unknown') }}
+          latest_digest: >
+            {{ states('sensor.host_2_esphome_latest_digest') | default('unknown') }}
+          release_notes: >
+            {{ states('input_text.esphome_release_notes_url') | default('unknown') }}
+          host: > 
+            {{ states('sensor.secret_host_2_hostname') | default('unknown') }}
         icon: >
           {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
 
@@ -131,35 +115,35 @@ automation:
   # ---------------------------------------------------------------------------
   # Generate notification(s) when an update for this container is available
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - Grafana - Update Notification"
-    id: host_2_grafana_update_notification
+  - alias: "Host 2 - ESPHome - Update Notification"
+    id: host_2_esphome_update_notification
     description: "Create a dashboard notifications when this container is ready for an update"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_grafana_update_summary
+      entity_id: sensor.host_2_esphome_update_summary
       to: 'yes'
     action:
       # Create a dashboard notification
       - service: persistent_notification.create
         data:
-          title: "Grafana Update Available"
+          title: "ESPHome Update Available"
           message: >
-            A new version of Grafana is available (via Docker/Portainer)
-          notification_id: host_2_grafana_update_persistant_notification
+            A new version of ESPHome is available (via Docker/Portainer)
+          notification_id: host_2_esphome_update_persistant_notification
 
   # ---------------------------------------------------------------------------
   # Clear notification(s) when this container has been updated
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - Grafana - Clear Update Notification"
-    id: host_2_grafana_clear_update_notification
+  - alias: "Host 2 - ESPHome - Clear Update Notification"
+    id: host_2_esphome_clear_update_notification
     description: "Clear the dashboard notification when this container is updated"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_grafana_update_summary
+      entity_id: sensor.host_2_esphome_update_summary
       to: 'no'
     action:
       - service: persistent_notification.dismiss
         data:
-          notification_id: host_2_grafana_update_persistant_notification
+          notification_id: host_2_esphome_update_persistant_notification

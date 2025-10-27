@@ -65,6 +65,16 @@ input_text:
     initial: https://github.com/networkupstools/nut/releases
     icon: mdi:file-document
   
+  pihole_release_notes_url:
+    name: PiHole Release Notes URL
+    initial: https://github.com/pi-hole/pi-hole/releases
+    icon: mdi:file-document
+
+  portainer_release_notes_url:
+    name: Portainer Release Notes URL
+    initial: https://docs.portainer.io/sts/release-notes
+    icon: mdi:file-document
+    
   socket_proxy_release_notes_url:
     name: Socket Proxy Release Notes URL
     initial: https://github.com/linuxserver/docker-socket-proxy/releases

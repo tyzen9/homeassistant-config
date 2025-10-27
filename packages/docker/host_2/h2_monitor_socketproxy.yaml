@@ -1,5 +1,5 @@
 # *****************************************************************************
-# HomeAssistant Package
+# Socket Proxy Package
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com - github.com/tyzen9
@@ -40,9 +40,9 @@ sensor:
   #
   # ---------------------------------------------------------------------------
   - platform: rest
-    name: "Host 2 - HomeAssistant - Current Digest"
-    unique_id: "host_2_homeassistant_current_digest"
-    resource_template: "{{ states('sensor.secret_host_2_socketproxy_url') }}/images/lscr.io/linuxserver/homeassistant/json"
+    name: "Host 2 - Socket Proxy - Current Digest"
+    unique_id: "host_2_socket_proxy_current_digest"
+    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/lscr.io/linuxserver/socket-proxy:3.2.6/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
@@ -63,45 +63,47 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_2_homeassistant_digest_update
+        entity_id: sensor.host_2_socket_proxy_digest_update
     sensor:
-      - name: "Host 2 - HomeAssistant - Latest Digest"
-        unique_id: "host_2_homeassistant_latest_digest"
-        state: "{{ states('sensor.host_2_homeassistant_digest_update') }}"
+      - name: "Host 2 - Socket Proxy - Latest Digest"
+        unique_id: "host_2_socket_proxy_latest_digest"
+        state: "{{ states('sensor.host_2_socket_proxy_digest_update') }}"
 
   # ---------------------------------------------------------------------------
   # This sensor determines the update status of this container/image and builds
   # a list of attributes useful for displaying on the dashboard
   # ---------------------------------------------------------------------------
   - sensor:
-      - name: "Host 2 - HomeAssistant - Update Summary"
-        unique_id: "host_2_homeassistant_update_summary"
+      - name: "Host 2 - Socket Proxy - Update Summary"
+        unique_id: "host_2_socket_proxy_update_summary"
         state: >
           {% from 'macros.jinja' import is_update_available %}
-          {{ is_update_available(states('sensor.host_2_homeassistant_current_digest'), states('sensor.host_2_homeassistant_latest_digest')) }}
+          {{ is_update_available(states('sensor.host_2_socket_proxy_current_digest'), states('sensor.host_2_socket_proxy_latest_digest')) }}
         attributes:
           app_name: >
-            {{ state_attr('sensor.host_2_homeassistant_current_digest', 'org.opencontainers.image.title') }}
+            Docker Socket-Proxy
           version: >
-            {{ state_attr('sensor.host_2_homeassistant_current_digest', 'org.opencontainers.image.version') }}
+            {{ state_attr('sensor.host_2_socket_proxy_current_digest', 'org.opencontainers.image.version') | default('unknown') }}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_2_homeassistant_state') | default('unknown') }}
+            {{ states('sensor.host_2_socket_proxy') | default('unknown') }}
           status: >
-            {{ states('sensor.host_2_homeassistant_status') | default('unknown') }}
+            {{ state_attr('sensor.host_2_socket_proxy', 'status') }}
           health: >
-            {{ states('sensor.sensor.host_2_homeassistant_health') | default('unknown') }}
-          current_digest: >
-            {{ states('sensor.host_2_homeassistant_current_digest') | default('unknown') }}
-          latest_digest: >
-            {{ states('sensor.host_2_homeassistant_latest_digest') | default('unknown') }}
-          release_notes: >
-            {{ states('input_text.homeassistant_release_notes_url') | default('unknown') }}
+            {{ state_attr('sensor.host_2_socket_proxy', 'health') }}
           memory: >
-            {{ states('sensor.host_2_homeassistant_memory') | default('unknown') }}
+            {{ state_attr('sensor.host_2_socket_proxy', 'memory') }}
           cpu: >
-            {{ states('sensor.host_2_homeassistant_cpu') | default('unknown') }}
+            {{ state_attr('sensor.host_2_socket_proxy', '1cpu_percentage') }}
+          current_digest: >
+            {{ states('sensor.host_2_socket_proxy_current_digest') | default('unknown') }}
+          latest_digest: >
+            {{ states('sensor.host_2_socket_proxy_latest_digest') | default('unknown') }}
+          release_notes: >
+            {{ states('input_text.socket_proxy_release_notes_url') | default('unknown') }}
+          host: > 
+            {{ states('sensor.secret_host_2_hostname') | default('unknown') }}
         icon: >
           {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
 
@@ -113,35 +115,35 @@ automation:
   # ---------------------------------------------------------------------------
   # Generate notification(s) when an update for this container is available
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - HomeAssistant - Update Notification"
-    id: host_2_homeassistant_update_notification
+  - alias: "Host 2 - Socket Proxy - Update Notification"
+    id: host_2_socket_proxy_update_notification
     description: "Create a dashboard notifications when this container is ready for an update"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_homeassistant_update_summary
+      entity_id: sensor.host_2_socket_proxy_update_summary
       to: 'yes'
     action:
       # Create a dashboard notification
       - service: persistent_notification.create
         data:
-          title: "HomeAssistant Update Available"
+          title: "Socket Proxy Update Available"
           message: >
-            A new version of HomeAssistant is available (via Docker/Portainer)
-          notification_id: host_2_homeassistant_update_persistant_notification
+            A new version of Socket Proxy is available (via Docker/Portainer)
+          notification_id: host_2_socket_proxy_update_persistant_notification
 
   # ---------------------------------------------------------------------------
   # Clear notification(s) when this container has been updated
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - HomeAssistant - Clear Update Notification"
-    id: host_2_homeassistant_clear_update_notification
+  - alias: "Host 2 - Socket Proxy - Clear Update Notification"
+    id: host_2_socket_proxy_clear_update_notification
     description: "Clear the dashboard notification when this container is updated"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_2_homeassistant_update_summary
+      entity_id: sensor.host_2_socket_proxy_update_summary
       to: 'no'
     action:
       - service: persistent_notification.dismiss
         data:
-          notification_id: host_2_homeassistant_update_persistant_notification
+          notification_id: host_2_socket_proxy_update_persistant_notification

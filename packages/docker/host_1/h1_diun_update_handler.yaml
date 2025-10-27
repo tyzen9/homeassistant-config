@@ -1,0 +1,114 @@
+# *****************************************************************************
+# Diun Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com - github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Manytimes, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# Dependencies
+#   - marcos.jinja - cool way to reduce jinja code through macros
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# MQTT Sensor
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mqtt:
+  # ---------------------------------------------------------------------------
+  # This mqtt sensor listens for notifications from a diun instance when a 
+  # Docker image is updated on a Docker registry.
+  #
+  # Dependencies:
+  #  - diun, running and configured to push mqtt messages to home assistant
+  #    to the state_topic configured in this rest sensor
+  #
+  # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
+  # I am veru dissapointed that templating cannot be used in an mqtt state_topic.
+  # As such, you must hardcode the client_id portion (host_x). There is a ton
+  # of Host_x in here, so this is not all that different.  However, the duin
+  # instance MUST also be passing this topic to Home Assistant.
+  # 
+  # If you are using "insight" (https://github.com/tyzen9/docker-insight) for
+  # this, then make sure the DIUN_NOTIF_MQTT_TOPIC is set to "diun/host_x/notify"
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #
+  # You can use a test call similar to this to test the sensor:
+  #   mosquitto_pub -h <mqtt_hostname> -p <mqtt_port> -u <mqtt_username> -P <mqtt_password> -t "diun/<client_id>/notify" -m '{"diun_version":"0.3.0","hostname":"myserver","status":"new","provider":"file","image":"docker.io/tyzen9/test:0.2.1","hub_link":"https://hub.docker.com/r/crazymax/swarm-cronjob","mime_type":"application/vnd.docker.distribution.manifest.v2+json","digest":"sha256:5913d4b5e8dc15430c2f47f40e43ab2ca7f2b8df5eee5db4d5c42311e08dfb79","created":"2019-01-24T10:26:49.152006005Z","platform":"linux/amd64"}'
+  # ---------------------------------------------------------------------------
+  sensor:
+    - name: "Host 1 - Latest Diun Update"
+      unique_id: "host_1_latest_diun_update"
+      state_topic: "diun/host_1/notify"
+      value_template: "{{ value_json.image }}"
+      json_attributes_topic: "diun/host_1/notify"
+
+template:
+  # ---------------------------------------------------------------------------
+  # The following sensors are used to detect any diun update notifications. 
+  # These watch for an MQTT message posted by Diun and pull the newly released
+  # image number from the message which is used later for comparison.
+  #
+  # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
+  # There must be one sensor for each image you are monitoring on this host
+  # and its name is in the last section of the single quote marks.
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #
+  # Dependencies
+  #   - marcos.jinja file and function: get_diun_image_version
+  # ---------------------------------------------------------------------------
+  - sensor:
+    - name: "Host 1 - Diun - Digest Update"
+      unique_id: "host_1_diun_digest_update"
+      icon: mdi:barcode
+      state: >
+        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
+        {{ get_diun_mqtt_image_digest('sensor.host_1_latest_diun_update', 'crazymax/diun') }}
+
+  - sensor:
+    - name: "Host 1 - Glances - Digest Update"
+      unique_id: "host_1_glances_digest_update"
+      icon: mdi:barcode
+      state: >
+        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
+        {{ get_diun_mqtt_image_digest('sensor.host_1_latest_diun_update', 'nicolargo/glances') }}
+
+  - sensor:
+    - name: "Host 1 - PiHole - Digest Update"
+      unique_id: "host_1_pihole_digest_update"
+      icon: mdi:barcode
+      state: >
+        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
+        {{ get_diun_mqtt_image_digest('sensor.host_1_latest_diun_update', 'pihole/pihole') }}
+
+  - sensor:
+    - name: "Host 1 - Portainer - Digest Update"
+      unique_id: "host_1_portainer_digest_update"
+      icon: mdi:barcode
+      state: >
+        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
+        {{ get_diun_mqtt_image_digest('sensor.host_1_latest_diun_update', 'portainer/portainer') }}
+
+  - sensor:
+    - name: "Host 1 - Socket_Proxy - Digest Update"
+      unique_id: "host_1_socket_proxy_digest_update"
+      icon: mdi:barcode
+      state: >
+        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
+        {{ get_diun_mqtt_image_digest('sensor.host_1_latest_diun_update', 'lscr.io/linuxserver/socket-proxy') }}
+

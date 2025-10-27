@@ -1,0 +1,152 @@
+# *****************************************************************************
+# PiHole Package
+#
+# Author: Steve Theisen (steve@tyzen9.com)
+#         www.tyzen9.com - github.com/tyzen9
+#
+# Usage:
+#   1. Place this package file in a config/packages folder
+#   2. Add this to your configuration.yaml:
+#      |homeassistant:
+#      |  packages: !include_dir_named packages
+#   3. Satisfy all dependant "external" entities (see note/examples below)
+#   4. Restart Home Assistant
+#   5. Drink a cold beverage
+#
+# Note: Packages require access to entities that are often configured outside
+# of this file.  Many times, these are from common integrations such as ESPHome,
+# Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# declaration below.
+#
+# Some Examples:
+#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+#
+# Dependencies
+#   - marcos.jinja - cool way to reduce jinja code through macros
+#
+# *****************************************************************************
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# RESTful Sensors
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sensor:
+  # ---------------------------------------------------------------------------
+  # This rest call retrieves JSON associated to this container from socket-proxy 
+  # and parses the desired json attributes.
+  # Hint: post the url into a browser or postman to review the provided JSON
+  #
+  # Dependencies:
+  #  - socket-proxy (see https://github.com/tyzen9/docker-insight)
+  #  - secrets.yaml - used to store host names, socket-proxy URL, etc.
+  #  - secret_sensor_pkg.yaml - used to convert secret date to sensors 
+  #       sensor.secret_host_1_socketproxy_url
+  #
+  # ---------------------------------------------------------------------------
+  - platform: rest
+    name: "Host 1 - PiHole - Current Digest"
+    unique_id: "host_1_pihole_current_digest"
+    resource_template: "http://{{ states('sensor.secret_host_1_hostname') }}:2375/images/pihole/pihole/json"
+    scan_interval: 7200
+    value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
+    json_attributes_path: "$.Config.Labels"
+    json_attributes:
+      - org.opencontainers.image.created
+      - org.opencontainers.image.version
+      - org.opencontainers.image.source
+      - org.opencontainers.image.vendor
+      - org.opencontainers.image.version
+      - org.opencontainers.image.title
+      - org.opencontainers.image.description
+      # add other label keys you want to extract
+
+
+template:
+  # ---------------------------------------------------------------------------  #
+  # This TRIGGERED sensor waches for digest updates in the PiHole update handler for 
+  # this container and stores the latest digest version.
+  # ---------------------------------------------------------------------------  #
+  - trigger:
+      - trigger: state
+        entity_id: sensor.host_1_pihole_digest_update 
+    sensor:
+      - name: "Host 1 - PiHole - Latest Digest"
+        unique_id: "host_1_pihole_latest_digest"
+        state: "{{ states('sensor.host_1_pihole_digest_update') }}"
+
+  # ---------------------------------------------------------------------------
+  # This sensor determines the update status of this container/image and builds
+  # a list of attributes useful for displaying on the dashboard
+  # ---------------------------------------------------------------------------
+  - sensor:
+      - name: "Host 1 - PiHole - Update Summary"
+        unique_id: "host_1_pihole_update_summary"
+        state: >
+          {% from 'macros.jinja' import is_update_available %}
+          {{ is_update_available(states('sensor.host_1_pihole_current_digest'), states('sensor.host_1_pihole_latest_digest')) }}
+        attributes:
+          app_name: >
+            PiHole
+          version: >
+            {{ state_attr('sensor.host_1_pihole_current_digest', 'org.opencontainers.image.version') | default('unknown') }}
+          update_available: >
+            {{ this.state }}
+          container_state: >
+            {{ states('sensor.host_1_pihole') | default('unknown') }}
+          status: >
+            {{ state_attr('sensor.host_1_pihole', 'status') }}
+          health: >
+            {{ state_attr('sensor.host_1_pihole', 'health') }}
+          memory: >
+            {{ state_attr('sensor.host_1_pihole', 'memory') }}
+          cpu: >
+            {{ state_attr('sensor.host_1_pihole', '1cpu_percentage') }}
+          current_digest: >
+            {{ states('sensor.host_1_pihole_current_digest') | default('unknown') }}
+          latest_digest: >
+            {{ states('sensor.host_1_pihole_latest_digest') | default('unknown') }}
+          release_notes: >
+            {{ states('input_text.pihole_release_notes_url') | default('unknown') }}
+          host: > 
+            {{ states('sensor.secret_host_1_hostname') | default('unknown') }}
+        icon: >
+          {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# AUTOMATIONS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+automation:
+  # ---------------------------------------------------------------------------
+  # Generate notification(s) when an update for this container is available
+  # ---------------------------------------------------------------------------
+  - alias: "Host 1 - PiHole - Update Notification"
+    id: host_1_pihole_update_notification
+    description: "Create a dashboard notifications when this container is ready for an update"
+    mode: single
+    trigger:
+      platform: state
+      entity_id: sensor.host_1_pihole_update_summary
+      to: 'yes'
+    action:
+      # Create a dashboard notification
+      - service: persistent_notification.create
+        data:
+          title: "PiHole Update Available"
+          message: >
+            A new version of PiHole is available (via Docker/PiHole)
+          notification_id: host_1_pihole_update_persistant_notification
+
+  # ---------------------------------------------------------------------------
+  # Clear notification(s) when this container has been updated
+  # ---------------------------------------------------------------------------
+  - alias: "Host 1 - PiHole - Clear Update Notification"
+    id: host_1_pihole_clear_update_notification
+    description: "Clear the dashboard notification when this container is updated"
+    mode: single
+    trigger:
+      platform: state
+      entity_id: sensor.host_1_pihole_update_summary
+      to: 'no'
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: host_1_pihole_update_persistant_notification

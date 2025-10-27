@@ -1,3 +1,15 @@
+- name: host_1
+  url:  !secret host_1_socketproxy_tcp_url
+  scan_interval: 600
+  containers:
+    - diun
+    - glances
+    - socket-proxy
+    - pihole
+    - portainer
+  monitored_conditions:
+    - allinone
+
 # Monitor docker is configured to connect to the Docker API via socket-proxy
 - name: host_2
   url:  !secret host_2_socketproxy_tcp_url
@@ -13,23 +25,26 @@
     - nut
     - victoriametrics
     - vscode
-  rename:
-    diun: Diun
-    glances: Glances
-    socket-proxy: Socket-Proxy
-    esphome: ESPHome
-    grafana: Grafana
-    homeassistant: Home Assistant
-    mqtt: MQTT
-    nut: Nut
-    victoriametrics: VictoriaMetrics
-    vscode: VSCode
   monitored_conditions:
-    - version
-    - containers_running
-    - containers_total
-    - state
-    - health
-    - status
-    - memory
-    - cpu_percentage
+    - allinone
+
+  # rename:
+  #   diun: Diun
+  #   glances: Glances
+  #   socket-proxy: Socket-Proxy
+  #   esphome: ESPHome
+  #   grafana: Grafana
+  #   homeassistant: Home Assistant
+  #   mqtt: MQTT
+  #   nut: Nut
+  #   victoriametrics: VictoriaMetrics
+  #   vscode: VSCode
+  # monitored_conditions:
+  #   - version
+  #   - containers_running
+  #   - containers_total
+  #   - state
+  #   - health
+  #   - status
+  #   - memory
+  #   - cpu_percentage
