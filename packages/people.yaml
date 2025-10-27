@@ -176,6 +176,29 @@ automation:
         target:
           entity_id: button.snape_sleep
 
+  - alias: Person 1 - Arrived Home
+    id: person_1_arrived_home
+    description: "Actions to take when person 1 arrives home"
+    mode: single
+    max_exceeded: silent
+    # When this person enters the zone
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.person_1_home
+        from: "off"
+        to: "on"
+    action:
+      # Make an verbal announcement
+      - action: script.amazon_device_announcement
+        data:
+          message: "Dad is pulling into the driveway"
+          volume: Normal
+          announcement: true
+          only_house_awake: false
+          target:
+            - group.alexa_inside        
+
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   #                                 PERSON 2
   # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -205,18 +228,6 @@ automation:
           title: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} Update"
           message: "{{ state_attr(states('sensor.person_2_entity_id'), 'friendly_name') }} has left home"
           presence: away
-          target:
-            - person_1
-
-  - alias: Frigate Person Alert
-    trigger:
-      platform: mqtt
-      topic: frigate/front_porch/person
-    action:
-      - action: script.ha_mobile_notification
-        data:
-          title: "Front Porch Person Detected"
-          presence: either
           target:
             - person_1
 
