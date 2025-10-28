@@ -36,23 +36,44 @@ sensor:
   #  - socket-proxy (see https://github.com/tyzen9/docker-insight)
   #  - secrets.yaml - used to store host names, etc.
   #  - secret_sensor_pkg.yaml - used to convert secret date to sensors 
-  #       sensor.secret_host_1_socketproxy_url
+  #       sensor.secret_host_2_socketproxy_url
   #
   # ---------------------------------------------------------------------------
   - platform: rest
     name: "Host 2 - MQTT - Current Digest"
     unique_id: "host_2_mqtt_current_digest"
-    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/eclipse-mosquitto/json"
+    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/{{ state_attr('sensor.host_2_mqtt', 'image') }}/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
-    json_attributes_path: "$.Config"
+    json_attributes_path: "$.Config.Labels"
     json_attributes:
-      - Env
+      - org.opencontainers.image.version
+    # Do not fire until the image name is evaluated (contains a '/' character)
+    availability: >
+      {{ state_attr('sensor.host_2_mqtt', 'image') is string and '/' in state_attr('sensor.host_2_mqtt', 'image') }}
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Template Sensors
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 template:
+  # ---------------------------------------------------------------------------
+  # This sensor will update its state to the latest available repo digest ID
+  # for this image when Diun sends an update FOR this image.
+  #
+  # ⚠️ This sensor will reset on restart (see the trigger sensor below)
+  # ---------------------------------------------------------------------------
+  - sensor:
+    - name: "Host 2 - MQTT - Digest Update"
+      unique_id: "host_2_mqtt_digest_update"
+      icon: mdi:barcode
+      # If Diun pushes an update for THIS image, then store the new digest ID
+      state: >
+        {% from 'macros.jinja' import get_image_digest %}
+        {{ get_image_digest('sensor.host_2_diun_update_handler', state_attr('sensor.host_2_mqtt', 'image')) }}
+
   # ---------------------------------------------------------------------------  #
-  # This TRIGGERED sensor waches for digest updates in the Diun update handler for 
-  # this container and stores the latest digest version.
+  # This TRIGGERED sensor watches for digest updates and stores the new digest ID
+  # in a way that will survive home assistant restarts
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
@@ -74,19 +95,15 @@ template:
           {{ is_update_available(states('sensor.host_2_mqtt_current_digest'), states('sensor.host_2_mqtt_latest_digest')) }}
         attributes:
           app_name: >
-            MQTT
+            {{ state_attr('sensor.host_2_mqtt', 'friendly_name') }}
           version: >
-            {% set env = state_attr('sensor.host_2_mqtt_current_digest', 'Env') %}
-            {% if env %}
-              {% set version = env | select('match', '^VERSION=') | list | first | default('') %}
-              {{ version.split('=')[1] if version else 'unknown' }}
-            {% else %}
-              unknown
-            {% endif %}
+            {{ state_attr('sensor.host_2_mqtt_current_digest', 'org.opencontainers.image.version') 
+                or state_attr('sensor.host_2_mqtt', 'image').split(':')[-1] + '*' 
+                or 'unknown' }}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_2_mqtt') | default('unknown') }}
+            {{ states('sensor.host_2_mqtt') or 'unknown'  }}
           status: >
             {{ state_attr('sensor.host_2_mqtt', 'status') }}
           health: >
@@ -96,15 +113,15 @@ template:
           cpu: >
             {{ state_attr('sensor.host_2_mqtt', '1cpu_percentage') }}
           current_digest: >
-            {{ states('sensor.host_2_mqtt_current_digest') | default('unknown') }}
+            {{ states('sensor.host_2_mqtt_current_digest') or 'unknown'  }}
           latest_digest: >
-            {{ states('sensor.host_2_mqtt_latest_digest') | default('unknown') }}
+            {{ states('sensor.host_2_mqtt_latest_digest') or 'unknown'  }}
           release_notes: >
-            {{ states('input_text.mqtt_release_notes_url') | default('unknown') }}
+            {{ states('input_text.mqtt_release_notes_url') or 'unknown'  }}
           host: > 
-            {{ states('sensor.secret_host_2_hostname') | default('unknown') }}
+            {{ states('sensor.secret_host_2_hostname') or 'unknown'  }}
         icon: >
-          {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
+          {{ 'mdi:arrow-up-circle' if this.state == 'yes' else ('mdi:help-circle' if this.state == 'unknown' else 'mdi:check-circle') }}
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

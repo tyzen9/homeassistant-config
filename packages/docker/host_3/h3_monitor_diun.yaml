@@ -1,5 +1,5 @@
 # *****************************************************************************
-# Portainer Package
+# Diun Package
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com - github.com/tyzen9
@@ -40,9 +40,9 @@ sensor:
   #
   # ---------------------------------------------------------------------------
   - platform: rest
-    name: "Host 1 - Portainer - Current Digest"
-    unique_id: "host_1_portainer_current_digest"
-    resource_template: "http://{{ states('sensor.secret_host_1_hostname') }}:2375/images/{{ state_attr('sensor.host_1_portainer', 'image') }}/json"
+    name: "Host 3 - Diun - Current Digest"
+    unique_id: "host_3_diun_current_digest"
+    resource_template: "http://{{ states('sensor.secret_host_3_hostname') }}:2375/images/{{ state_attr('sensor.host_3_diun', 'image') }}/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
@@ -50,7 +50,7 @@ sensor:
       - org.opencontainers.image.version
     # Do not fire until the image name is evaluated (contains a '/' character)
     availability: >
-      {{ state_attr('sensor.host_1_portainer', 'image') is string and '/' in state_attr('sensor.host_1_portainer', 'image') }}
+      {{ state_attr('sensor.host_3_diun', 'image') is string and '/' in state_attr('sensor.host_3_diun', 'image') }}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Template Sensors
@@ -63,13 +63,13 @@ template:
   # ⚠️ This sensor will reset on restart (see the trigger sensor below)
   # ---------------------------------------------------------------------------
   - sensor:
-    - name: "Host 1 - Portainer - Digest Update"
-      unique_id: "host_1_portainer_digest_update"
+    - name: "Host 3 - Diun - Digest Update"
+      unique_id: "host_3_diun_digest_update"
       icon: mdi:barcode
       # If Diun pushes an update for THIS image, then store the new digest ID
       state: >
         {% from 'macros.jinja' import get_image_digest %}
-        {{ get_image_digest('sensor.host_1_diun_update_handler', state_attr('sensor.host_1_portainer', 'image')) }}
+        {{ get_image_digest('sensor.host_3_diun_update_handler', state_attr('sensor.host_3_diun', 'image')) }}
 
   # ---------------------------------------------------------------------------  #
   # This TRIGGERED sensor watches for digest updates and stores the new digest ID
@@ -77,49 +77,49 @@ template:
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
-        entity_id: sensor.host_1_portainer_digest_update
+        entity_id: sensor.host_3_diun_digest_update
     sensor:
-      - name: "Host 1 - Portainer - Latest Digest"
-        unique_id: "host_1_portainer_latest_digest"
-        state: "{{ states('sensor.host_1_portainer_digest_update') }}"
+      - name: "Host 3 - Diun - Latest Digest"
+        unique_id: "host_3_diun_latest_digest"
+        state: "{{ states('sensor.host_3_diun_digest_update') }}"
 
   # ---------------------------------------------------------------------------
   # This sensor determines the update status of this container/image and builds
   # a list of attributes useful for displaying on the dashboard
   # ---------------------------------------------------------------------------
   - sensor:
-      - name: "Host 1 - Portainer - Update Summary"
-        unique_id: "host_1_portainer_update_summary"
+      - name: "Host 3 - Diun - Update Summary"
+        unique_id: "host_3_diun_update_summary"
         state: >
           {% from 'macros.jinja' import is_update_available %}
-          {{ is_update_available(states('sensor.host_1_portainer_current_digest'), states('sensor.host_1_portainer_latest_digest')) }}
+          {{ is_update_available(states('sensor.host_3_diun_current_digest'), states('sensor.host_3_diun_latest_digest')) }}
         attributes:
           app_name: >
-            {{ state_attr('sensor.host_1_portainer', 'friendly_name') }}
+            {{ state_attr('sensor.host_3_diun', 'friendly_name') }}
           version: >
-            {{ state_attr('sensor.host_1_portainer_current_digest', 'org.opencontainers.image.version') 
-                or state_attr('sensor.host_1_portainer', 'image').split(':')[-1] + '*' 
+            {{ state_attr('sensor.host_3_diun_current_digest', 'org.opencontainers.image.version') 
+                or state_attr('sensor.host_3_diun', 'image').split(':')[-1] + '*'
                 or 'unknown' }}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_1_portainer') or 'unknown'  }}
+            {{ states('sensor.host_3_diun') or 'unknown'  }}
           status: >
-            {{ state_attr('sensor.host_1_portainer', 'status') }}
+            {{ state_attr('sensor.host_3_diun', 'status') }}
           health: >
-            {{ state_attr('sensor.host_1_portainer', 'health') }}
+            {{ state_attr('sensor.host_3_diun', 'health') }}
           memory: >
-            {{ state_attr('sensor.host_1_portainer', 'memory') }}
+            {{ state_attr('sensor.host_3_diun', 'memory') }}
           cpu: >
-            {{ state_attr('sensor.host_1_portainer', '1cpu_percentage') }}
+            {{ state_attr('sensor.host_3_diun', '1cpu_percentage') }}
           current_digest: >
-            {{ states('sensor.host_1_portainer_current_digest') or 'unknown'  }}
+            {{ states('sensor.host_3_diun_current_digest') or 'unknown'  }}
           latest_digest: >
-            {{ states('sensor.host_1_portainer_latest_digest') or 'unknown'  }}
+            {{ states('sensor.host_3_diun_latest_digest') or 'unknown'  }}
           release_notes: >
-            {{ states('input_text.portainer_release_notes_url') or 'unknown'  }}
+            {{ states('input_text.diun_release_notes_url') or 'unknown'  }}
           host: > 
-            {{ states('sensor.secret_host_1_hostname') or 'unknown'  }}
+            {{ states('sensor.secret_host_3_hostname') or 'unknown'  }}
         icon: >
           {{ 'mdi:arrow-up-circle' if this.state == 'yes' else ('mdi:help-circle' if this.state == 'unknown' else 'mdi:check-circle') }}
 
@@ -131,35 +131,35 @@ automation:
   # ---------------------------------------------------------------------------
   # Generate notification(s) when an update for this container is available
   # ---------------------------------------------------------------------------
-  - alias: "Host 1 - Portainer - Update Notification"
-    id: host_1_portainer_update_notification
+  - alias: "Host 3 - Diun - Update Notification"
+    id: host_3_diun_update_notification
     description: "Create a dashboard notifications when this container is ready for an update"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_1_portainer_update_summary
+      entity_id: sensor.host_3_diun_update_summary
       to: 'yes'
     action:
       # Create a dashboard notification
       - service: persistent_notification.create
         data:
-          title: "Portainer Update Available"
+          title: "Diun Update Available"
           message: >
-            A new version of Portainer is available (via Docker/Portainer)
-          notification_id: host_1_portainer_update_persistant_notification
+            A new version of Diun is available (via Docker/Portainer)
+          notification_id: host_3_diun_update_persistant_notification
 
   # ---------------------------------------------------------------------------
   # Clear notification(s) when this container has been updated
   # ---------------------------------------------------------------------------
-  - alias: "Host 1 - Portainer - Clear Update Notification"
-    id: host_1_portainer_clear_update_notification
+  - alias: "Host 3 - Diun - Clear Update Notification"
+    id: host_3_diun_clear_update_notification
     description: "Clear the dashboard notification when this container is updated"
     mode: single
     trigger:
       platform: state
-      entity_id: sensor.host_1_portainer_update_summary
+      entity_id: sensor.host_3_diun_update_summary
       to: 'no'
     action:
       - service: persistent_notification.dismiss
         data:
-          notification_id: host_1_portainer_update_persistant_notification
+          notification_id: host_3_diun_update_persistant_notification

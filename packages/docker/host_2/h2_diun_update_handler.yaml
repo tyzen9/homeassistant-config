@@ -38,11 +38,9 @@ mqtt:
   #  - diun, running and configured to push mqtt messages to home assistant
   #    to the state_topic configured in this rest sensor
   #
-  # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
-  # I am veru dissapointed that templating cannot be used in an mqtt state_topic.
-  # As such, you must hardcode the client_id portion (host_x). There is a ton
-  # of Host_x in here, so this is not all that different.  However, the duin
-  # instance MUST also be passing this topic to Home Assistant.
+ # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
+  # I am very dissapointed that templating cannot be used in an mqtt state_topic.
+  # As such, you must hardcode the client_id portion (host_x). 
   # 
   # If you are using "insight" (https://github.com/tyzen9/docker-insight) for
   # this, then make sure the DIUN_NOTIF_MQTT_TOPIC is set to "diun/host_x/notify"
@@ -52,110 +50,110 @@ mqtt:
   #   mosquitto_pub -h <mqtt_hostname> -p <mqtt_port> -u <mqtt_username> -P <mqtt_password> -t "diun/<client_id>/notify" -m '{"diun_version":"0.3.0","hostname":"myserver","status":"new","provider":"file","image":"docker.io/tyzen9/test:0.2.1","hub_link":"https://hub.docker.com/r/crazymax/swarm-cronjob","mime_type":"application/vnd.docker.distribution.manifest.v2+json","digest":"sha256:5913d4b5e8dc15430c2f47f40e43ab2ca7f2b8df5eee5db4d5c42311e08dfb79","created":"2019-01-24T10:26:49.152006005Z","platform":"linux/amd64"}'
   # ---------------------------------------------------------------------------
   sensor:
-    - name: "Host 2 - Latest Diun Update"
-      unique_id: "host_2_latest_diun_update"
+    - name: "Host 2 - Diun Update Handler"
+      unique_id: "host_2_diun_update_handler"
       state_topic: "diun/host_2/notify"
       value_template: "{{ value_json.image }}"
       json_attributes_topic: "diun/host_2/notify"
 
-template:
-  # ---------------------------------------------------------------------------
-  # The following sensors are used to detect any diun update notifications. 
-  # These watch for an MQTT message posted by Diun and pull the newly released
-  # image number from the message which is used later for comparison.
-  #
-  # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
-  # There must be one sensor for each image you are monitoring on this host
-  # and its name is in the last section of the single quote marks.
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #
-  # Dependencies
-  #   - marcos.jinja file and function: get_diun_image_version
-  # ---------------------------------------------------------------------------
-  - sensor:
-    - name: "Host 2 - Testing - Digest Update"
-      unique_id: "host_2_testing_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'tyzen9/test') }}
+# template:
+#   # ---------------------------------------------------------------------------
+#   # The following sensors are used to detect any diun update notifications. 
+#   # These watch for an MQTT message posted by Diun and pull the newly released
+#   # image number from the message which is used later for comparison.
+#   #
+#   # ~~~~~~~~~~~~~~~~~~~~~~~ ⚠️  HARDCODED WARNING!  ⚠️ ~~~~~~~~~~~~~~~~~~~~~~~
+#   # There must be one sensor for each image you are monitoring on this host
+#   # and its name is in the last section of the single quote marks.
+#   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   #
+#   # Dependencies
+#   #   - marcos.jinja file and function: get_diun_image_version
+#   # ---------------------------------------------------------------------------
+#   - sensor:
+#     - name: "Host 2 - Testing - Digest Update"
+#       unique_id: "host_2_testing_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'tyzen9/test') }}
 
-  - sensor:
-    - name: "Host 2 - Diun - Digest Update"
-      unique_id: "host_2_diun_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'crazymax/diun') }}
+#   - sensor:
+#     - name: "Host 2 - Diun - Digest Update"
+#       unique_id: "host_2_diun_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'crazymax/diun') }}
 
-  - sensor:
-    - name: "Host 2 - ESPhome - Digest Update"
-      unique_id: "host_2_esphome_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'ghcr.io/esphome/esphome') }}
+#   - sensor:
+#     - name: "Host 2 - ESPhome - Digest Update"
+#       unique_id: "host_2_esphome_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'ghcr.io/esphome/esphome') }}
 
-  - sensor:
-    - name: "Host 2 - Glances - Digest Update"
-      unique_id: "host_2_glances_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'nicolargo/glances') }}
+#   - sensor:
+#     - name: "Host 2 - Glances - Digest Update"
+#       unique_id: "host_2_glances_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'nicolargo/glances') }}
 
-  - sensor:
-    - name: "Host 2 - Grafana - Digest Update"
-      unique_id: "host_2_grafana_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'grafana/grafana') }}
+#   - sensor:
+#     - name: "Host 2 - Grafana - Digest Update"
+#       unique_id: "host_2_grafana_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'grafana/grafana') }}
 
-  - sensor:
-    - name: "Host 2 - HomeAssistant - Digest Update"
-      unique_id: "host_2_homeassistant_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/homeassistant') }}
+#   - sensor:
+#     - name: "Host 2 - HomeAssistant - Digest Update"
+#       unique_id: "host_2_homeassistant_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/homeassistant') }}
 
-  - sensor:
-    - name: "Host 2 - MQTT - Digest Update"
-      unique_id: "host_2_mqtt_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'eclipse-mosquitto') }}
+#   - sensor:
+#     - name: "Host 2 - MQTT - Digest Update"
+#       unique_id: "host_2_mqtt_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'eclipse-mosquitto') }}
 
-  - sensor:
-    - name: "Host 2 - Nut - Digest Update"
-      unique_id: "host_2_nut_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'instantlinux/nut-upsd') }}
+#   - sensor:
+#     - name: "Host 2 - Nut - Digest Update"
+#       unique_id: "host_2_nut_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'instantlinux/nut-upsd') }}
 
-  - sensor:
-    - name: "Host 2 - Socket_Proxy - Digest Update"
-      unique_id: "host_2_socket_proxy_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/socket-proxy') }}
+#   - sensor:
+#     - name: "Host 2 - Socket_Proxy - Digest Update"
+#       unique_id: "host_2_socket_proxy_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/socket-proxy') }}
 
-  - sensor:
-    - name: "Host 2 - VictoriaMetrics - Digest Update"
-      unique_id: "host_2_victoriametrics_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'victoriametrics/victoria-metrics') }}
+#   - sensor:
+#     - name: "Host 2 - VictoriaMetrics - Digest Update"
+#       unique_id: "host_2_victoriametrics_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'victoriametrics/victoria-metrics') }}
 
-  - sensor:
-    - name: "Host 2 - VSCode - Digest Update"
-      unique_id: "host_2_vscode_digest_update"
-      icon: mdi:barcode
-      state: >
-        {% from 'macros.jinja' import get_diun_mqtt_image_digest %}
-        {{ get_diun_mqtt_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/code-server') }}
+#   - sensor:
+#     - name: "Host 2 - VSCode - Digest Update"
+#       unique_id: "host_2_vscode_digest_update"
+#       icon: mdi:barcode
+#       state: >
+#         {% from 'macros.jinja' import get_image_digest %}
+#         {{ get_image_digest('sensor.host_2_latest_diun_update', 'lscr.io/linuxserver/code-server') }}

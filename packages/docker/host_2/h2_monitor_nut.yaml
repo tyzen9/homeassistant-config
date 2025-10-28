@@ -1,5 +1,5 @@
 # *****************************************************************************
-# NUT Package
+# Nut Package
 #
 # Author: Steve Theisen (steve@tyzen9.com)
 #         www.tyzen9.com - github.com/tyzen9
@@ -36,71 +36,50 @@ sensor:
   #  - socket-proxy (see https://github.com/tyzen9/docker-insight)
   #  - secrets.yaml - used to store host names, etc.
   #  - secret_sensor_pkg.yaml - used to convert secret date to sensors 
-  #       sensor.secret_host_1_socketproxy_url
+  #       sensor.secret_host_2_socketproxy_url
   #
   # ---------------------------------------------------------------------------
   - platform: rest
-    name: "Host 2 - NUT - Current Digest"
+    name: "Host 2 - Nut - Current Digest"
     unique_id: "host_2_nut_current_digest"
-    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/instantlinux/nut-upsd/json"
+    resource_template: "http://{{ states('sensor.secret_host_2_hostname') }}:2375/images/{{ state_attr('sensor.host_2_nut', 'image') }}/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
     json_attributes:
-      - org.opencontainers.image.created
       - org.opencontainers.image.version
-      - org.opencontainers.image.source
-      - org.opencontainers.image.vendor
-      - org.opencontainers.image.version
-      - org.opencontainers.image.title
-      - org.opencontainers.image.description
-      # add other label keys you want to extract
+    # Do not fire until the image name is evaluated (contains a '/' character)
+    availability: >
+      {{ state_attr('sensor.host_2_nut', 'image') is string and '/' in state_attr('sensor.host_2_nut', 'image') }}
 
-command_line:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Template Sensors
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+template:
   # ---------------------------------------------------------------------------
-  # This command line sensor make a call to the NUT API to retrieve the latesta
-  # installed version
+  # This sensor will update its state to the latest available repo digest ID
+  # for this image when Diun sends an update FOR this image.
   #
-  #
-  # Dependencies:
-  #  - Network UPS Tools (NUT) API access from the homeassistant container
-  #  - secrets.yaml - used to store host names, etc.
-  #  - secret_sensor_pkg.yaml - used to convert secret date to sensors 
-  #
-  # NOTICE
-  #  Home Assistant loads command_line sensors very early in the startup process, 
-  #  before template or helper-based entities (like sensor.secret_host_1_hostname)
-  #  We will need an automation to update this sensor after HA is started.
-  #
+  # ⚠️ This sensor will reset on restart (see the trigger sensor below)
   # ---------------------------------------------------------------------------
   - sensor:
-      name: "Host 2 - NUT - Current Version"
-      unique_id: "host_2_nut_current_version"
-      command: >
-        bash -c '(
-          echo "GET VAR ups-1 driver.version"
-          echo "LOGOUT"
-        ) | nc filch.lan 3493 |
-        awk "/^VAR ups-1 driver.version/ { gsub(/\"/, \"\"); print \"v\" \$4 }"'
-      scan_interval: 7200
+    - name: "Host 2 - Nut - Digest Update"
+      unique_id: "host_2_nut_digest_update"
+      icon: mdi:barcode
+      # If Diun pushes an update for THIS image, then store the new digest ID
+      state: >
+        {% from 'macros.jinja' import get_image_digest %}
+        {{ get_image_digest('sensor.host_2_diun_update_handler', state_attr('sensor.host_2_nut', 'image')) }}
 
-      # command: >-
-      #   bash -c '(
-      #     echo "GET VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version"
-      #     echo "LOGOUT"
-      #   ) | nc {{ states("sensor.secret_host_2_hostname") }} {{ states("sensor.secret_host_2_nut_api_port") }} |
-      #   awk "/^VAR {{ states("sensor.secret_host_2_nut_ups_name") }} driver.version/ { gsub(/\"/, \"\"); print \"v\" \$4 }"'
-
-template:
   # ---------------------------------------------------------------------------  #
-  # This TRIGGERED sensor waches for digest updates in the Diun update handler for 
-  # this container and stores the latest digest version.
+  # This TRIGGERED sensor watches for digest updates and stores the new digest ID
+  # in a way that will survive home assistant restarts
   # ---------------------------------------------------------------------------  #
   - trigger:
       - trigger: state
         entity_id: sensor.host_2_nut_digest_update
     sensor:
-      - name: "Host 2 - NUT - Latest Digest"
+      - name: "Host 2 - Nut - Latest Digest"
         unique_id: "host_2_nut_latest_digest"
         state: "{{ states('sensor.host_2_nut_digest_update') }}"
 
@@ -109,20 +88,22 @@ template:
   # a list of attributes useful for displaying on the dashboard
   # ---------------------------------------------------------------------------
   - sensor:
-      - name: "Host 2 - NUT - Update Summary"
+      - name: "Host 2 - Nut - Update Summary"
         unique_id: "host_2_nut_update_summary"
         state: >
           {% from 'macros.jinja' import is_update_available %}
           {{ is_update_available(states('sensor.host_2_nut_current_digest'), states('sensor.host_2_nut_latest_digest')) }}
         attributes:
           app_name: >
-            Nut
+            {{ state_attr('sensor.host_2_nut', 'friendly_name') }}
           version: >
-            {{ states('sensor.host_2_nut_current_version') | default('unknown') }}
+            {{ state_attr('sensor.host_2_nut_current_digest', 'org.opencontainers.image.version') 
+                or state_attr('sensor.host_2_nut', 'image').split(':')[-1] + '*' 
+                or 'unknown' }}
           update_available: >
             {{ this.state }}
           container_state: >
-            {{ states('sensor.host_2_nut') | default('unknown') }}
+            {{ states('sensor.host_2_nut') or 'unknown'  }}
           status: >
             {{ state_attr('sensor.host_2_nut', 'status') }}
           health: >
@@ -132,15 +113,15 @@ template:
           cpu: >
             {{ state_attr('sensor.host_2_nut', '1cpu_percentage') }}
           current_digest: >
-            {{ states('sensor.host_2_nut_current_digest') | default('unknown') }}
+            {{ states('sensor.host_2_nut_current_digest') or 'unknown'  }}
           latest_digest: >
-            {{ states('sensor.host_2_nut_latest_digest') | default('unknown') }}
+            {{ states('sensor.host_2_nut_latest_digest') or 'unknown'  }}
           release_notes: >
-            {{ states('input_text.nut_release_notes_url') | default('unknown') }}
+            {{ states('input_text.nut_release_notes_url') or 'unknown'  }}
           host: > 
-            {{ states('sensor.secret_host_2_hostname') | default('unknown') }}
+            {{ states('sensor.secret_host_2_hostname') or 'unknown'  }}
         icon: >
-          {{ 'mdi:alert-circle' if this.state == 'yes' else 'mdi:check-circle' }}
+          {{ 'mdi:arrow-up-circle' if this.state == 'yes' else ('mdi:help-circle' if this.state == 'unknown' else 'mdi:check-circle') }}
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,7 +131,7 @@ automation:
   # ---------------------------------------------------------------------------
   # Generate notification(s) when an update for this container is available
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - NUT - Update Notification"
+  - alias: "Host 2 - Nut - Update Notification"
     id: host_2_nut_update_notification
     description: "Create a dashboard notifications when this container is ready for an update"
     mode: single
@@ -162,15 +143,15 @@ automation:
       # Create a dashboard notification
       - service: persistent_notification.create
         data:
-          title: "NUT Update Available"
+          title: "Nut Update Available"
           message: >
-            A new version of NUT is available (via Docker/Portainer)
+            A new version of Nut is available (via Docker/Portainer)
           notification_id: host_2_nut_update_persistant_notification
 
   # ---------------------------------------------------------------------------
   # Clear notification(s) when this container has been updated
   # ---------------------------------------------------------------------------
-  - alias: "Host 2 - NUT - Clear Update Notification"
+  - alias: "Host 2 - Nut - Clear Update Notification"
     id: host_2_nut_clear_update_notification
     description: "Clear the dashboard notification when this container is updated"
     mode: single

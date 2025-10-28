@@ -73,7 +73,7 @@
 
  Example image_name: docker.io/crazymax/swarm-cronjob:0.2.1
 #}
-{% macro get_diun_mqtt_image_digest(entity_id, match_string) %}
+{% macro get_image_digest(entity_id, match_string) %}
   {% set image_name = states(entity_id) %}
   {% if image_name is string and match_string in image_name %}
     {{ state_attr(entity_id, 'digest') }}
@@ -90,7 +90,7 @@
  rules as to if an update is available.
  #-------------------------------------------------------------- #}
 {% macro is_update_available(current_ver, latest_ver) %}
-  {% if current_ver != 'unknown' and latest_ver != 'unknown' and current_ver != latest %}
+  {% if current_ver != 'unknown' and latest_ver != 'unknown' and current_ver != latest_ver %}
     yes
   {% elif current_ver != 'unknown' and latest_ver == 'unknown' %}
     no

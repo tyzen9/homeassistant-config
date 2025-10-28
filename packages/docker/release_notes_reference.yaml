@@ -30,6 +30,11 @@
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 input_text:
+  cloudflare_ddns_release_notes_url:
+    name: CloudFlare DDNS Release Notes URL
+    initial: https://github.com/favonia/cloudflare-ddns/releases
+    icon: mdi:file-document
+
   esphome_release_notes_url:
     name: ESPHome Release Notes URL
     initial: https://esphome.io/changelog
@@ -38,6 +43,11 @@ input_text:
   diun_release_notes_url:
     name: Diun Release Notes URL
     initial: https://crazymax.dev/diun/changelog/
+    icon: mdi:file-document
+
+  flaresolverr_release_notes_url:
+    name: Flaresolverr Release Notes URL
+    initial: https://github.com/FlareSolverr/FlareSolverr/releases
     icon: mdi:file-document
 
   glances_release_notes_url:
@@ -55,9 +65,39 @@ input_text:
     initial: https://www.home-assistant.io/blog/categories/release-notes/
     icon: mdi:file-document
 
+  lftp_mirror_release_notes_url:
+    name: LFTP Mirror Release Notes URL
+    initial: https://github.com/tyzen9/docker-lftp-mirror/releases
+    icon: mdi:file-document
+
+  mam_ip_helper_release_notes_url:
+    name: MAM IP HelperRelease Notes URL
+    initial: https://github.com/tyzen9/docker-myanonamouse-ip-helper/releases
+    icon: mdi:file-document
+
   mqtt_release_notes_url:
     name: MQTT Release Notes URL
     initial: https://mosquitto.org/blog/categories/releases/
+    icon: mdi:file-document
+
+  mysql_release_notes_url:
+    name: MySql Release Notes URL
+    initial: https://dev.mysql.com/doc/relnotes/mysql/8.0/en/
+    icon: mdi:file-document
+
+  pia_vpn_release_notes_url:
+    name: PIA VPN Release Notes URL
+    initial: https://hub.docker.com/r/thrnz/docker-wireguard-pia
+    icon: mdi:file-document
+
+  prowlarr_release_notes_url:
+    name: Prowlarr Release Notes URL
+    initial: https://github.com/Prowlarr/Prowlarr/releases
+    icon: mdi:file-document
+
+  nginx_proxy_manager_release_notes_url:
+    name: Nginx Proxy Manager Release Notes URL
+    initial: https://github.com/NginxProxyManager/nginx-proxy-manager/releases
     icon: mdi:file-document
 
   nut_release_notes_url:
@@ -70,16 +110,61 @@ input_text:
     initial: https://github.com/pi-hole/pi-hole/releases
     icon: mdi:file-document
 
+  piwigo_release_notes_url:
+    name: Piwigo Release Notes URL
+    initial: https://piwigo.org/changelogs
+    icon: mdi:file-document
+
+  plex_release_notes_url:
+    name: Plex Release Notes URL
+    initial: https://forums.plex.tv/
+    icon: mdi:file-document
+
   portainer_release_notes_url:
     name: Portainer Release Notes URL
     initial: https://docs.portainer.io/sts/release-notes
     icon: mdi:file-document
-    
+
+  postgres_release_notes_url:
+    name: Postgres Release Notes URL
+    initial: https://www.postgresql.org/docs/release/
+    icon: mdi:file-document
+
   socket_proxy_release_notes_url:
     name: Socket Proxy Release Notes URL
     initial: https://github.com/linuxserver/docker-socket-proxy/releases
     icon: mdi:file-document
   
+  qbittorrent_release_notes_url:
+    name: qBittorrent Release Notes URL
+    initial: https://www.qbittorrent.org/news
+    icon: mdi:file-document
+
+  qbittorrent_port_helper_release_notes_url:
+    name: qBittorrent Port Helper Release Notes URL
+    initial: https://github.com/tyzen9/docker-qbittorrent-port-helper/releases
+    icon: mdi:file-document
+
+  radarr_release_notes_url:
+    name: Radarr Release Notes URL
+    initial: https://github.com/Radarr/Radarr/releases
+    icon: mdi:file-document
+
+  readarr_release_notes_url:
+    name: Readarr Release Notes URL
+    initial: https://github.com/readarr/Readarr/releases
+    icon: mdi:file-document
+
+  sonarr_release_notes_url:
+    name: Sonarr Release Notes URL
+    initial: https://github.com/Sonarr/Sonarr/releases
+    icon: mdi:file-document
+
+  striparr_release_notes_url:
+    name: Striparr Release Notes URL
+    initial: https://github.com/mikenye/docker-striparr/releases
+    icon: mdi:file-document
+
   victoria_metrics_release_notes_url:
     name: Victoria Metrics Release Notes URL
     initial: https://github.com/VictoriaMetrics/VictoriaMetrics/releases
@@ -88,4 +173,14 @@ input_text:
   vscode_release_notes_url:
     name: VSCode Release Notes URL
     initial: https://code.visualstudio.com/updates
+    icon: mdi:file-document
+
+  tautulli_release_notes_url:
+    name: Tautulli Release Notes URL
+    initial: https://github.com/Tautulli/Tautulli/releases
+    icon: mdi:file-document
+
+  wikijs_release_notes_url:
+    name: Wikijs Release Notes URL
+    initial: https://github.com/requarks/wiki/releases
     icon: mdi:file-document
