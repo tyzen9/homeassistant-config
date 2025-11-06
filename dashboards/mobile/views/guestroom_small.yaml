@@ -1,0 +1,12 @@
+title: Back
+subview: true
+path: guestroom_small
+icon: mdi:bed
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: ⚾ JT's Bedroom
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/guestroom_small/lights.yaml

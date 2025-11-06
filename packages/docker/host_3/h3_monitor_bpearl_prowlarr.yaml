@@ -42,7 +42,7 @@ sensor:
   - platform: rest
     name: "Host 3 - Prowlarr - Current Digest"
     unique_id: "host_3_prowlarr_current_digest"
-    resource_template: "http://{{ states('sensor.secret_host_3_hostname') }}:2375/images/{{ state_attr('sensor.host_3_prowlarr', 'image') }}/json"
+    resource_template: "http://niffler.lan:2375/images/{{ state_attr('sensor.host_3_prowlarr', 'image') }}/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
@@ -97,9 +97,11 @@ template:
           app_name: >
             {{ state_attr('sensor.host_3_prowlarr', 'friendly_name') }}
           version: >
-            {{ state_attr('sensor.host_3_prowlarr_current_digest', 'org.opencontainers.image.version') 
-                or state_attr('sensor.host_3_prowlarr', 'image').split(':')[-1] + '*' 
-                or 'unknown' }}
+            {% from 'macros.jinja' import get_container_version %}
+            {{ get_container_version(
+                'sensor.host_3_prowlarr_current_digest',
+                'sensor.host_3_prowlarr'
+              ) }}
           update_available: >
             {{ this.state }}
           container_state: >

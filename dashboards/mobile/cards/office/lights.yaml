@@ -1,0 +1,22 @@
+# Light Controls ---------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Lights
+    heading_style: title
+    badges: []
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd07_dimmer
+    name: Ceiling Lights
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: true
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd14_dimmer
+    name: Bookshelf
+    icon: mdi:bookshelf
+    layout: horizontal
+    show_brightness_control: true

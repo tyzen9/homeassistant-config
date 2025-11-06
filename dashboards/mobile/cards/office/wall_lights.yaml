@@ -1,0 +1,38 @@
+# Wall WLED Controls -----------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:led-strip-variant
+    heading: Wall LEDs
+    heading_style: title
+    badges: []
+    card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+  - type: custom:mushroom-light-card
+    entity: light.wled_basement_office
+    name: Brightness
+    icon: mdi:led-strip-variant
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    show_color_control: false
+    show_color_temp_control: false
+    collapsible_controls: false
+    use_light_color: true
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-select-card
+        entity: select.wled_basement_office_preset
+        secondary_info: none
+        layout: horizontal
+        name: Pattern
+
+      - type: custom:button-card
+        template:
+          - button-icon
+        icon: mdi:cog
+        name: Settings
+        tap_action:
+          action: url
+          url_path: http://wled-basement-office.local/

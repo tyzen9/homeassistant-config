@@ -1,0 +1,12 @@
+title: 3D Printer
+path: 3dprinter
+icon: mdi:printer-3d-nozzle
+
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🏆 Ender 3 Pro - 3D Printer
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/devices/3dprinter.yaml

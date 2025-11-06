@@ -1,0 +1,14 @@
+title: Back
+subview: true
+path: outside
+icon: mdi:home
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🏡 Outside & Garage
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/outside/front_yard.yaml
+      - !include ../cards/outside/back_yard.yaml
+      - !include ../cards/garage/lights_and_door.yaml

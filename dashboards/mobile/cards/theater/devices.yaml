@@ -1,0 +1,31 @@
+# Network Closet -------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:projector
+    heading: Devices
+    heading_style: title
+    badges: []
+    card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.basement_theater_projector_status
+        secondary_info: state
+        primary_info: name
+        name: Projector
+        fill_container: false
+        layout: horizontal
+        tap_action:
+          action: none
+
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.basement_theater_dehumidifier_status
+        secondary_info: state
+        primary_info: name
+        name: Dehumidifier
+        fill_container: false
+        layout: horizontal
+        tap_action:
+          action: none

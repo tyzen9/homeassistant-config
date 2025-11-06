@@ -1,0 +1,40 @@
+# Light Controls --------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Lights
+    heading_style: title
+    badges: []
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd05_dimmer
+    name: Ceiling Lights
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: true
+
+  # Fan Controls --------------------------------------------------------
+  - type: vertical-stack
+    cards:
+      - type: heading
+        icon: mdi:ceiling-fan
+        heading: Ceiling Fan
+        heading_style: title
+        badges: []
+        card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+      - type: custom:mushroom-light-card
+        entity: light.fan_wf02_light
+        name: Fan Lights
+        icon: mdi:ceiling-fan-light
+        layout: horizontal
+        show_brightness_control: true
+
+      - type: custom:mushroom-fan-card
+        entity: fan.fan_wf02_fan_speed
+        name: Fan Speed
+        icon_animation: true
+        show_percentage_control: true
+        fill_container: true
+        layout: horizontal

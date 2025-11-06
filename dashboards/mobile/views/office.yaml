@@ -1,0 +1,14 @@
+title: Back
+subview: true
+path: office
+icon: mdi:desk-lamp
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🖥️ Basement Office
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/office/lights.yaml
+      - !include ../cards/office/wall_lights.yaml
+      - !include ../cards/office/pc_controls.yaml

@@ -1,0 +1,64 @@
+# Computer Controls ------------------------------------------------------------
+type: vertical-stack
+cards:
+  # ----------------------------------------------------
+  #  This section will only appear for certain users
+  # ----------------------------------------------------
+  - type: conditional
+    conditions:
+      - condition: user
+        users:
+          - bfa50b7fe61740949ee25d5760247121
+    card:
+      type: vertical-stack
+      cards:
+        - type: heading
+          icon: mdi:laptop
+          heading: Office PC
+          heading_style: title
+          badges:
+            - type: entity
+              show_state: true
+              show_icon: true
+              entity: binary_sensor.daytona_power
+              state_content:
+                - last_changed
+                - state
+          card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+        - type: horizontal-stack
+          cards:
+            - type: custom:button-card
+              template:
+                - standard
+              icon: mdi:lock
+              name: Screen Lock
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.snape_lock
+
+            - type: custom:button-card
+              template:
+                - standard
+              icon: mdi:sleep
+              name: Sleep
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.snape_sleep
+                confirmation:
+                  text: Put PC to Sleep - Are you sure?
+
+            - type: custom:button-card
+              template:
+                - standard
+              icon: mdi:bullhorn
+              name: Wake
+              tap_action:
+                action: call-service
+                service: input_button.press
+                target:
+                  entity_id: input_button.button_wol_snape

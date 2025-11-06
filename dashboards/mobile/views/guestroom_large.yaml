@@ -1,0 +1,13 @@
+title: Back
+subview: true
+path: guestroom_large
+icon: mdi:bed
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🎮 Logan's Bedroom
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/guestroom_large/lights.yaml
+      - !include ../cards/guestroom_large/desk_lights.yaml

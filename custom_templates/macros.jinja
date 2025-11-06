@@ -98,3 +98,21 @@
     no
   {% endif %}
 {% endmacro %}
+
+
+{# -------------------------------------------------------------
+ This is used to get the container version from either the digest
+ entity attribute or the image entity tag.
+ #-------------------------------------------------------------- #}
+{% macro get_container_version(digest_entity, image_entity, attr_name='org.opencontainers.image.version') %}
+  {% set digest_ver = state_attr(digest_entity, attr_name) %}
+  {% set img_tag = state_attr(image_entity, 'image') | default('unknown:latest') %}
+  {% if digest_ver %}
+    {{ digest_ver }}
+  {% elif img_tag != 'unknown:latest' and ':' in img_tag %}
+    {% set tag = img_tag.split(':')[-1] %}
+    {{ tag }}{{ '*' if tag == 'latest' else '' }}
+  {% else %}
+    unknown
+  {% endif %}
+{% endmacro %}

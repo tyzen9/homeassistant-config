@@ -1,0 +1,20 @@
+title: Mobile Dashboard
+background: var(--background-image)
+button_card_templates: !include button-templates/mobile-button-templates.yaml
+views:
+  - !include mobile/views/home.yaml
+
+  - !include mobile/views/den.yaml
+  - !include mobile/views/kitchen.yaml
+  - !include mobile/views/livingroom.yaml
+
+  - !include mobile/views/second_floor.yaml
+  - !include mobile/views/guestroom_large.yaml
+  - !include mobile/views/guestroom_small.yaml
+
+  - !include mobile/views/theater.yaml
+  - !include mobile/views/office.yaml
+  - !include mobile/views/outside.yaml
+
+  - !include mobile/views/3dprinter.yaml
+

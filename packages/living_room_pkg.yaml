@@ -125,7 +125,7 @@ automation:
       - action: light.turn_on
         entity_id: light.dimmer_wd01_dimmer
         data:
-          brightness: "{{ state_attr('light.zl5', 'brightness') }}"
+          brightness: "{{ state_attr('light.zl2', 'brightness') }}"
 
   # ---------------------------------------------------------------------------
   # Turn off the RGBW light bulbs in the living room tall lamp
@@ -152,7 +152,7 @@ automation:
       - action: light.turn_off
         target:
           entity_id:
-            - light.zl5
+            - light.zl2
 
   # ---------------------------------------------------------------------------
   # Adjust the brightness of the RGBW light bulbs in the living room tall lamp
@@ -189,12 +189,12 @@ automation:
       - if:
           # If this bulb is on
           - condition: state
-            entity_id: light.zl5
+            entity_id: light.zl2
             state: "on"
         then:
           # Adjust its brightness
           - action: light.turn_on
-            entity_id: light.zl5
+            entity_id: light.zl2
             data:
               brightness: "{{ int(state_attr('light.dimmer_wd01_dimmer', 'brightness')) | int(155) }}"
 

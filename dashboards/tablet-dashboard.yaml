@@ -1,0 +1,7 @@
+title: Mobile Dashboard
+background: var(--background-image)
+visible:
+  - user: bfa50b7fe61740949ee25d5760247121
+
+views:
+  - !include tablet/views/servers.yaml

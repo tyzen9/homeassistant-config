@@ -1,0 +1,12 @@
+style:
+  mushroom-shape-icon$: |
+  #
+  # Removed to preserve the dark/light UI compatibility
+  #
+  #  .shape {
+  #    --shape-color: black !important;
+  #  }
+  # .: |
+  #   ha-card {
+  #     background: #333 !important;
+  #   }

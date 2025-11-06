@@ -1,0 +1,44 @@
+# Light Controls -------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Main Lighting
+    heading_style: title
+    badges: []
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd17_3w_dimmer
+    name: Path Lights
+    icon: mdi:light-recessed
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    collapsible_controls: false
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd16_3w_dimmer
+    name: Front Lights
+    icon: mdi:light-recessed
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    collapsible_controls: false
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd12_dimmer
+    name: Rear Lights
+    icon: mdi:light-recessed
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    collapsible_controls: false
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd09_dimmer
+    name: Cabinet Lights
+    icon: mdi:audio-video
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    collapsible_controls: false

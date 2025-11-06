@@ -1,0 +1,13 @@
+title: Back
+subview: true
+path: kitchen
+icon: mdi:chef-hat
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🍽️ Kitchen & Dining Room
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/kitchen/lights.yaml
+      - !include ../cards/kitchen/diningroom.yaml

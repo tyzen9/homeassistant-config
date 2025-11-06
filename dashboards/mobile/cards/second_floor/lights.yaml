@@ -1,0 +1,15 @@
+# Light Controls ---------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Lights
+    heading_style: title
+    badges: []
+
+  - type: custom:mushroom-light-card
+    entity: switch.switch_ws07_3w_switch
+    name: Hallway
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: false

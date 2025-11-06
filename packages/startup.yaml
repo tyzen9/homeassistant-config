@@ -30,7 +30,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 automation:
   # ---------------------------------------------------------------------------
-  # When Home Assistant starts, make a quiet announcement in the Living Room
+  # When Home Assistant starts, make a quiet announcement on an Alexa device
   #
   # Dependencies:
   #  - script.amazon_device_announcement (HA script)
@@ -45,14 +45,6 @@ automation:
       - platform: homeassistant
         event: start
     action:
-      # Create a dashboard notification
-      - action: script.ha_mobile_notification
-        data:
-          title: "Home Assistant Restart"
-          message: "A restart has been completed"
-          presence: either
-          target:
-            - person_1
       # Make an verbal announcement
       - action: script.amazon_device_announcement
         data:
@@ -62,3 +54,17 @@ automation:
           only_house_awake: false
           target:
             - media_player.alexa_office
+
+
+  # ---------------------------------------------------------------------------
+  # When Home Assistant starts, wait a short period of time, and reset the rest
+  # sensors.  This is a workaround for the rest sensors starting before all
+  # Home Assistant parameters have been initialized.
+  # ---------------------------------------------------------------------------
+  - alias: Reload REST sensors after startup
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: '00:00:5'
+      - service: rest.reload

@@ -1,0 +1,40 @@
+# Scenes -----------------------------------------------------------------------
+type: horizontal-stack
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      
+      - type: entity
+        entity: light.zl1
+        content_info: name
+        name: Dusk
+        icon: mdi:weather-sunset
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.mainbedroom_nightstandlight_dusk
+
+      - type: entity
+        entity: light.zl1
+        content_info: name
+        name: Evening
+        icon: mdi:weather-night
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.mainbedroom_nightstandlight_evening
+
+      - type: entity
+        entity: light.zl1
+        content_info: name
+        name: Sleeping
+        icon: mdi:sleep
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.mainbedroom_nightstandlight_night
+
+    alignment: center

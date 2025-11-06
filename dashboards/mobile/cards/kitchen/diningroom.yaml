@@ -1,0 +1,23 @@
+# Light Controls --------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:silverware-fork-knife
+    heading: Dining Room
+    heading_style: title
+    badges: []
+    card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd15_3w_dimmer
+    name: Chandelier
+    icon: mdi:chandelier
+    layout: horizontal
+    show_brightness_control: true
+
+  - type: custom:mushroom-light-card
+    entity: light.plug_dimmer_zp04
+    name: Cabinet Lights
+    icon: mdi:door-sliding
+    layout: horizontal    
+    show_brightness_control: true

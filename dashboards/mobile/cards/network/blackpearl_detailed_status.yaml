@@ -1,0 +1,45 @@
+type: horizontal-stack
+title: ☠️ Black Pearl
+cards:
+  - type: custom:button-card
+    name: VPN
+    entity: sensor.blackpearl_vpn_status
+    show_label: true
+    icon: mdi:vpn
+    label: >
+      [[[ 
+        return entity.attributes.ip;
+      ]]]
+    template:
+      - standard
+      - effect-warn-state-error
+
+  - type: custom:button-card
+    name: qBittorrent
+    entity: sensor.blackpearl_qbittorrent_status
+    show_label: true
+    icon: mdi:cloud-download
+    label: "OK"
+    template:
+      - standard
+      - effect-warn-state-error
+
+  - type: custom:button-card
+    name: Radarr
+    entity: sensor.blackpearl_radarr_status
+    show_label: true
+    icon: mdi:movie-roll
+    label: "OK"
+    template:
+      - standard
+      - effect-warn-state-error
+
+  - type: custom:button-card
+    name: Sonarr
+    entity: sensor.blackpearl_sonarr_status
+    show_label: true
+    icon: mdi:television-classic
+    label: "OK"
+    template:
+      - standard
+      - effect-warn-state-error

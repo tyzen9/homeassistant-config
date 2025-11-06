@@ -1,0 +1,36 @@
+type: vertical-stack
+cards:
+  - type: custom:mushroom-title-card
+    title: Containers
+    
+  - type: 'custom:flex-table-card'
+    entities:
+      include: 
+        - 'sensor.host_1_*_update_summary'
+    # sort_by: app_name+
+    columns:
+      - data: app_name
+        name: Name
+      - data: version
+        name: Version
+      - data: container_state
+        name: State
+      - data: status
+        name: Status
+      - data: release_notes
+        name: URL
+        hidden: true
+      - data: update_available
+        name: Update
+        align: center
+        modify: |-
+          if (x == 'yes')
+            '<ha-icon icon="mdi:arrow-up-circle" style="color: orange;"></ha-icon>'
+          else if (x == 'unknown')
+            '<ha-icon icon="mdi:help-circle" style="color: yellow;"></ha-icon>'
+          else if (x == 'no')
+            '<ha-icon icon="mdi:check-circle" style="color: green;"></ha-icon>'
+        tap_action:
+          action: url
+          url_path: col[4]
+

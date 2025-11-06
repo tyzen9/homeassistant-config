@@ -158,12 +158,19 @@ automation:
           - binary_sensor.basement_theater_projector_status
         from: "off"
         to: "on"
+        for:
+          seconds: 25
     actions:
       # Turn off the outlet the powers the dehumidifier - who wants to hear that thing?
       - action: switch.turn_off
         target:
           entity_id:
             - switch.plug_wp02_relay
+      # Disable the path light near the screen
+      - action: switch.turn_off
+        target:
+          entity_id:
+            - switch.relay_theater_path_light
       # If the closet lights are on
       - condition: state
         entity_id: light.rgbw_theater_closet
@@ -201,6 +208,11 @@ automation:
         target:
           entity_id:
             - switch.plug_wp02_relay
+      # Enable the path light near the screen
+      - action: switch.turn_on
+        target:
+          entity_id:
+            - switch.relay_theater_path_light
       # If the closet lights are on
       - condition: state
         entity_id: light.rgbw_theater_closet

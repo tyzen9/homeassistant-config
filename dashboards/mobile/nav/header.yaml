@@ -1,0 +1,36 @@
+type: vertical-stack
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      # - type: template
+      #   icon: mdi:pirate
+      #   icon_color: |-
+      #     {% if is_state('sensor.blackpearl_status', 'OK') %}
+      #       green
+      #     {% else %}
+      #       yellow
+      #     {% endif %}
+      #   entity: sensor.blackpearl_status
+      #   tap_action:
+      #     action:none
+      #     # action: navigate
+      #     # navigation_path: /lovelace-mobile-dashboard/network
+
+      - type: template
+        icon: mdi:home
+        icon_color: |-
+          {% if states('zone.home')|float(0) == 5 %}
+            pink
+          {% elif states('zone.home')|float(0) > 0 %}
+            green
+          {% else %}
+            yellow
+          {% endif %}
+        content: "{{ (states.zone.home.state) }}"
+
+      - type: weather
+        entity: weather.tomorrow_io_home_daily
+        show_conditions: true
+        show_temperature: true
+
+    alignment: end

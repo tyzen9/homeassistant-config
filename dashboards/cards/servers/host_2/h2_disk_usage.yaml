@@ -1,0 +1,39 @@
+type: vertical-stack
+cards:
+  - type: custom:mushroom-title-card
+    title: Disk Usage
+
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:entity-progress-card
+        name: OS (NVMe)
+        entity: sensor.localhost_hostroot_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.localhost_hostroot_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }
+      - type: custom:entity-progress-card
+        name: Frigate
+        entity: sensor.localhost_mnt_hdd1_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.localhost_mnt_hdd1_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }

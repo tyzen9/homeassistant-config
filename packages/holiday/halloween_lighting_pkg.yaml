@@ -1,289 +1,289 @@
-# *****************************************************************************
-# Holiday - Indoor Lighting
-#
-# Author: Steve Theisen (steve@tyzen9.com)
-#         www.tyzen9.com  -  github.com/tyzen9
-#
-# Usage:
-#   1. Place this package file in a config/packages folder
-#   2. Add this to your configuration.yaml:
-#      |homeassistant:
-#      |  packages: !include_dir_named packages
-#   3. Satisfy all dependant "external" entities (see note/examples below)
-#   4. Restart Home Assistant
-#   5. Drink a cold beverage
-#
-# Note: Packages require access to entities that are often configured outside
-# of this file.  Manytimes, these are from common integrations such as ESPHome,
-# Shelly, Zigbee, etc.  These dependant entities are called out in each package
-# declaration below.
-#
-# Some Examples:
-#   - ESPHome: https://www.home-assistant.io/integrations/esphome/
-#   - Shelly: https://www.home-assistant.io/integrations/shelly/
-#   - Zigbee: https://www.home-assistant.io/integrations/zha
-#   - HACS: https://hacs.xyz
-#   - Alexa Media Player: https://github.com/alandtse/alexa_media_player
-#
-# *****************************************************************************
+# # *****************************************************************************
+# # Holiday - Indoor Lighting
+# #
+# # Author: Steve Theisen (steve@tyzen9.com)
+# #         www.tyzen9.com  -  github.com/tyzen9
+# #
+# # Usage:
+# #   1. Place this package file in a config/packages folder
+# #   2. Add this to your configuration.yaml:
+# #      |homeassistant:
+# #      |  packages: !include_dir_named packages
+# #   3. Satisfy all dependant "external" entities (see note/examples below)
+# #   4. Restart Home Assistant
+# #   5. Drink a cold beverage
+# #
+# # Note: Packages require access to entities that are often configured outside
+# # of this file.  Manytimes, these are from common integrations such as ESPHome,
+# # Shelly, Zigbee, etc.  These dependant entities are called out in each package
+# # declaration below.
+# #
+# # Some Examples:
+# #   - ESPHome: https://www.home-assistant.io/integrations/esphome/
+# #   - Shelly: https://www.home-assistant.io/integrations/shelly/
+# #   - Zigbee: https://www.home-assistant.io/integrations/zha
+# #   - HACS: https://hacs.xyz
+# #   - Alexa Media Player: https://github.com/alandtse/alexa_media_player
+# #
+# # *****************************************************************************
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# GROUPS
-#
-#      >>>>>>>>>> ADD SWITCHES AND LIGHT DEVICES IN THESE GROUPS <<<<<<<<<<<
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-switch:
-  - platform: group
-    name: Halloween Indoor Switch Group
-    unique_id: halloween_indoor_switch_group
-    entities:
-      - switch.plug_zp07_switch
-      - switch.plug_zp11
-      # - switch.plug_zp05
-      # - switch.plug_zp10
-      # - switch.plug_zp11
-
-# light:
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# # GROUPS
+# #
+# #      >>>>>>>>>> ADD SWITCHES AND LIGHT DEVICES IN THESE GROUPS <<<<<<<<<<<
+# #
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# switch:
 #   - platform: group
-#     name: Halloween Indoor Light Group
-#     unique_id: halloween_indoor_light_group
+#     name: Halloween Indoor Switch Group
+#     unique_id: halloween_indoor_switch_group
 #     entities:
-#       # - light.rgbw_shelly01
+#       - switch.plug_zp07_switch
+#       - switch.plug_zp11
+#       # - switch.plug_zp05
+#       # - switch.plug_zp10
+#       # - switch.plug_zp11
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# HELPERS
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-input_boolean:
-  halloween_indoor_lighting:
-    name: Toggle - Halloween Indoor Lighting
-    icon: mdi:light-switch
+# # light:
+# #   - platform: group
+# #     name: Halloween Indoor Light Group
+# #     unique_id: halloween_indoor_light_group
+# #     entities:
+# #       # - light.rgbw_shelly01
 
-  halloween_indoor_lighting_schedule:
-    name: Toggle - Halloween Indoor Lighting Schedule
-    icon: mdi:clock-outline
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# # HELPERS
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# input_boolean:
+#   halloween_indoor_lighting:
+#     name: Toggle - Halloween Indoor Lighting
+#     icon: mdi:light-switch
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# AUTOMATIONS
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-automation:
-  # ---------------------------------------------------------------------------
-  # Set the schedule for turning the lighting helper on
-  # ---------------------------------------------------------------------------
-  - alias: Halloween Indoor Lighting Schedule (ON) - Daily
-    id: halloween_indoor_lighting_schedule_daily_on
-    description: "Daily schedule for turning the halloween lighting helper on"
-    mode: single    
-    trigger:
-      - platform: sun
-        event: sunrise
-      - platform: sun
-        event: sunset
-    condition:
-      - condition: time
-        weekday:
-          - mon
-          - tue
-          - wed
-          - thu
-          - fri
-          - sat
-          - sun
-    action:
-      - action: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting_schedule
+#   halloween_indoor_lighting_schedule:
+#     name: Toggle - Halloween Indoor Lighting Schedule
+#     icon: mdi:clock-outline
 
-  # ---------------------------------------------------------------------------
-  # Set the schedules for turning the lighting helper off
-  # ---------------------------------------------------------------------------
-  # Weekday turn off conditions
-  - alias: Halloween Indoor Lighting Schedule (OFF) - Weekdays
-    id: halloween_indoor_lighting_schedule_weekdays_off
-    description: "Weekday schedule for turning the halloween lighting helper off"
-    mode: single    
-    trigger:
-      - platform: time
-        at: '09:00:00'
-      - platform: time
-        at: '22:00:00'
-    condition:
-      - condition: time
-        weekday:
-          - mon
-          - tue
-          - wed
-          - thu
-          - fri
-    action:
-      - action: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting_schedule
-  # Weekend turn off conditions
-  - alias: Halloween Indoor Lighting Schedule (OFF) - Weekends
-    id: halloween_indoor_lighting_schedule_weekends_off
-    description: "Weekend schedule for turning the halloween lighting helper off"
-    mode: single    
-    trigger:
-      - platform: time
-        at: '22:00:00'
-    condition:
-      - condition: time
-        weekday:
-          - sat
-          - sun
-    action:
-      - action: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting_schedule
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# # AUTOMATIONS
+# # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# automation:
+#   # ---------------------------------------------------------------------------
+#   # Set the schedule for turning the lighting helper on
+#   # ---------------------------------------------------------------------------
+#   - alias: Halloween Indoor Lighting Schedule (ON) - Daily
+#     id: halloween_indoor_lighting_schedule_daily_on
+#     description: "Daily schedule for turning the halloween lighting helper on"
+#     mode: single    
+#     trigger:
+#       - platform: sun
+#         event: sunrise
+#       - platform: sun
+#         event: sunset
+#     condition:
+#       - condition: time
+#         weekday:
+#           - mon
+#           - tue
+#           - wed
+#           - thu
+#           - fri
+#           - sat
+#           - sun
+#     action:
+#       - action: input_boolean.turn_on
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting_schedule
 
-  # ---------------------------------------------------------------------------
-  # Turn the Halloween Lighting on/off based on input_boolean state
-  # ---------------------------------------------------------------------------
-  - alias: "Halloween Indoor Lighting - Toggled"
-    id: halloween_indoor_lighting_toggled
-    description: "Toggle the Halloween interior lighting when the helper toggle changes states"
-    mode: single
-    triggers:
-      - trigger: state
-        entity_id: input_boolean.halloween_indoor_lighting
-    actions:
-      - if:
-          # If the indoor accent lighting helper is active
-          - condition: state
-            entity_id: input_boolean.halloween_indoor_lighting
-            state: "on"
-        then:
-          # Turn on all the indoor accent switch/lights
-          - action: switch.turn_on
-            target:
-              entity_id:
-                - switch.halloween_indoor_switch_group
-          # - action: light.turn_on
-          #   target:
-          #     entity_id:
-          #       - light.indoor_accent_light_group
-        else:
-          # Turn off all the indoor accent switch/lights
-          - action: switch.turn_off
-            target:
-              entity_id:
-                - switch.halloween_indoor_switch_group
-          # - action: light.turn_off
-          #   target:
-          #     entity_id:
-          #       - light.indoor_accent_light_group
+#   # ---------------------------------------------------------------------------
+#   # Set the schedules for turning the lighting helper off
+#   # ---------------------------------------------------------------------------
+#   # Weekday turn off conditions
+#   - alias: Halloween Indoor Lighting Schedule (OFF) - Weekdays
+#     id: halloween_indoor_lighting_schedule_weekdays_off
+#     description: "Weekday schedule for turning the halloween lighting helper off"
+#     mode: single    
+#     trigger:
+#       - platform: time
+#         at: '09:00:00'
+#       - platform: time
+#         at: '22:00:00'
+#     condition:
+#       - condition: time
+#         weekday:
+#           - mon
+#           - tue
+#           - wed
+#           - thu
+#           - fri
+#     action:
+#       - action: input_boolean.turn_off
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting_schedule
+#   # Weekend turn off conditions
+#   - alias: Halloween Indoor Lighting Schedule (OFF) - Weekends
+#     id: halloween_indoor_lighting_schedule_weekends_off
+#     description: "Weekend schedule for turning the halloween lighting helper off"
+#     mode: single    
+#     trigger:
+#       - platform: time
+#         at: '22:00:00'
+#     condition:
+#       - condition: time
+#         weekday:
+#           - sat
+#           - sun
+#     action:
+#       - action: input_boolean.turn_off
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting_schedule
 
-
-  # ---------------------------------------------------------------------------
-  # Turn on the Halloween indoor lighting when the scheduled time hits, and 
-  # the house is occupied.
-  # ---------------------------------------------------------------------------
-  - alias: "Halloween Indoor Lighting - Scheduled On"
-    id: halloween_indoor_lighting_scheduled_on
-    description: "Turn on the Halloween indoor lighting when the scheduled time hits, and the house is occupied."
-    mode: single
-    # When the lighting schedule is active
-    triggers:
-      - trigger: state
-        entity_id: input_boolean.halloween_indoor_lighting_schedule
-        from: "off"
-        to: "on"
-    conditions:
-      # If the house is considered occupied
-      condition: state
-      entity_id: binary_sensor.house_occupied
-      state: "on"
-    action:
-      ## Turn on the accent lights
-      - action: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting
-
-  # ---------------------------------------------------------------------------
-  # Turn off the Halloween indoor accent lighting when the scheduled time hits.
-  # ---------------------------------------------------------------------------
-  - alias: "Halloween Indoor Lighting - Scheduled OFF"
-    id: halloween_indoor_lighting_scheduled_off
-    description: "Turn off the Halloween indoor accent lighting when the scheduled time hits"
-    mode: single
-    # When the lighting schedule is off
-    triggers:
-      - trigger: state
-        entity_id: input_boolean.halloween_indoor_lighting_schedule
-        from: "on"
-        to: "off"
-    action:
-      # Turn off the accent lights
-      - action: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting
-
-  # ---------------------------------------------------------------------------
-  # When someone comes home, if we are in the active schedule then turn the
-  # lighting on
-  # ---------------------------------------------------------------------------
-  - alias: Halloween Indoor Accent - House Occupied
-    id: halloween_indoor_lighting_house_occupied
-    description: "When a person returns home, if we are in the active schedule turn the lighting on"
-    mode: single
-    # When the house is occupied again
-    triggers:
-      - trigger: state
-        entity_id: binary_sensor.house_occupied
-        from: "off"
-        to: "on"
-    conditions:
-      # If the lighting schedule is active
-      condition: state
-      entity_id: input_boolean.halloween_indoor_lighting_schedule
-      state: "on"
-    action:
-      # Turn on the accent lights
-      - action: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting
-
-  # ---------------------------------------------------------------------------
-  # When the house empties, turn the halloween indoor lighting off
-  # ---------------------------------------------------------------------------
-  - alias: Halloween Indoor Lighting - House Unoccupied
-    id: halloween_indoor_lighting_house_unoccupied
-    description: "When the house empties, turn the halloween indoor lighting off"
-    mode: single
-    # If nobody is home
-    triggers:
-      - trigger: state
-        entity_id: binary_sensor.house_occupied
-        from: "on"
-        to: "off"
-    action:
-      # Turn off the accent lights
-      - action: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.halloween_indoor_lighting
+#   # ---------------------------------------------------------------------------
+#   # Turn the Halloween Lighting on/off based on input_boolean state
+#   # ---------------------------------------------------------------------------
+#   - alias: "Halloween Indoor Lighting - Toggled"
+#     id: halloween_indoor_lighting_toggled
+#     description: "Toggle the Halloween interior lighting when the helper toggle changes states"
+#     mode: single
+#     triggers:
+#       - trigger: state
+#         entity_id: input_boolean.halloween_indoor_lighting
+#     actions:
+#       - if:
+#           # If the indoor accent lighting helper is active
+#           - condition: state
+#             entity_id: input_boolean.halloween_indoor_lighting
+#             state: "on"
+#         then:
+#           # Turn on all the indoor accent switch/lights
+#           - action: switch.turn_on
+#             target:
+#               entity_id:
+#                 - switch.halloween_indoor_switch_group
+#           # - action: light.turn_on
+#           #   target:
+#           #     entity_id:
+#           #       - light.indoor_accent_light_group
+#         else:
+#           # Turn off all the indoor accent switch/lights
+#           - action: switch.turn_off
+#             target:
+#               entity_id:
+#                 - switch.halloween_indoor_switch_group
+#           # - action: light.turn_off
+#           #   target:
+#           #     entity_id:
+#           #       - light.indoor_accent_light_group
 
 
-  # ---------------------------------------------------------------------------
-  # When the controller becomes available (gets power again) set the color mode
-  #   to "Gradual Change"
-  #
-  # Dependencies:
-  #  - light.rgbw_shelly01 (INT Shelly)
-  # ---------------------------------------------------------------------------
-  - alias: Halloween  - Outdoor RGB Skull
-    id: halloween_outdoor_rgb_skull
-    description: "When the skull becomes available, set the color cycle mode"
-    mode: single
-    triggers:
-      # When the dimmer is turned on
-      - trigger: state
-        entity_id: light.rgbw_shelly01
-        from: "unavailable"
-    action:
-      # Set the default light brightness
-      - action: light.turn_on
-        target:
-          entity_id: light.rgbw_shelly01
-        data:
-          effect: Gradual Change
+#   # ---------------------------------------------------------------------------
+#   # Turn on the Halloween indoor lighting when the scheduled time hits, and 
+#   # the house is occupied.
+#   # ---------------------------------------------------------------------------
+#   - alias: "Halloween Indoor Lighting - Scheduled On"
+#     id: halloween_indoor_lighting_scheduled_on
+#     description: "Turn on the Halloween indoor lighting when the scheduled time hits, and the house is occupied."
+#     mode: single
+#     # When the lighting schedule is active
+#     triggers:
+#       - trigger: state
+#         entity_id: input_boolean.halloween_indoor_lighting_schedule
+#         from: "off"
+#         to: "on"
+#     conditions:
+#       # If the house is considered occupied
+#       condition: state
+#       entity_id: binary_sensor.house_occupied
+#       state: "on"
+#     action:
+#       ## Turn on the accent lights
+#       - action: input_boolean.turn_on
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting
+
+#   # ---------------------------------------------------------------------------
+#   # Turn off the Halloween indoor accent lighting when the scheduled time hits.
+#   # ---------------------------------------------------------------------------
+#   - alias: "Halloween Indoor Lighting - Scheduled OFF"
+#     id: halloween_indoor_lighting_scheduled_off
+#     description: "Turn off the Halloween indoor accent lighting when the scheduled time hits"
+#     mode: single
+#     # When the lighting schedule is off
+#     triggers:
+#       - trigger: state
+#         entity_id: input_boolean.halloween_indoor_lighting_schedule
+#         from: "on"
+#         to: "off"
+#     action:
+#       # Turn off the accent lights
+#       - action: input_boolean.turn_off
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting
+
+#   # ---------------------------------------------------------------------------
+#   # When someone comes home, if we are in the active schedule then turn the
+#   # lighting on
+#   # ---------------------------------------------------------------------------
+#   - alias: Halloween Indoor Accent - House Occupied
+#     id: halloween_indoor_lighting_house_occupied
+#     description: "When a person returns home, if we are in the active schedule turn the lighting on"
+#     mode: single
+#     # When the house is occupied again
+#     triggers:
+#       - trigger: state
+#         entity_id: binary_sensor.house_occupied
+#         from: "off"
+#         to: "on"
+#     conditions:
+#       # If the lighting schedule is active
+#       condition: state
+#       entity_id: input_boolean.halloween_indoor_lighting_schedule
+#       state: "on"
+#     action:
+#       # Turn on the accent lights
+#       - action: input_boolean.turn_on
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting
+
+#   # ---------------------------------------------------------------------------
+#   # When the house empties, turn the halloween indoor lighting off
+#   # ---------------------------------------------------------------------------
+#   - alias: Halloween Indoor Lighting - House Unoccupied
+#     id: halloween_indoor_lighting_house_unoccupied
+#     description: "When the house empties, turn the halloween indoor lighting off"
+#     mode: single
+#     # If nobody is home
+#     triggers:
+#       - trigger: state
+#         entity_id: binary_sensor.house_occupied
+#         from: "on"
+#         to: "off"
+#     action:
+#       # Turn off the accent lights
+#       - action: input_boolean.turn_off
+#         target:
+#           entity_id: input_boolean.halloween_indoor_lighting
+
+
+#   # ---------------------------------------------------------------------------
+#   # When the controller becomes available (gets power again) set the color mode
+#   #   to "Gradual Change"
+#   #
+#   # Dependencies:
+#   #  - light.rgbw_shelly01 (INT Shelly)
+#   # ---------------------------------------------------------------------------
+#   - alias: Halloween  - Outdoor RGB Skull
+#     id: halloween_outdoor_rgb_skull
+#     description: "When the skull becomes available, set the color cycle mode"
+#     mode: single
+#     triggers:
+#       # When the dimmer is turned on
+#       - trigger: state
+#         entity_id: light.rgbw_shelly01
+#         from: "unavailable"
+#     action:
+#       # Set the default light brightness
+#       - action: light.turn_on
+#         target:
+#           entity_id: light.rgbw_shelly01
+#         data:
+#           effect: Gradual Change

@@ -1,0 +1,26 @@
+type: custom:auto-entities
+card:
+  type: entities
+  title: "🔴 Unavailable Devices"
+  show_header_toggle: false
+  state_color: true
+filter:
+  include:
+    - state: "unavailable"
+      options:
+        secondary_info: last-changed
+    - state: "unknown"
+      options:
+        secondary_info: last-changed
+  exclude:
+    - domain: group
+    - domain: scene
+    - domain: automation
+    - domain: script
+    - entity_id: "*_battery_*"  # Exclude battery sensors if desired
+    - hidden_by: user
+    - hidden_by: integration
+show_empty: false
+sort:
+  method: domain
+  reverse: false

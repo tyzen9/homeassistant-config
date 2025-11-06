@@ -1,0 +1,6 @@
+style: |
+  ha-card {
+    font-variant: small-caps;
+    --title-color: gray;
+    text-align: center !important;
+  }

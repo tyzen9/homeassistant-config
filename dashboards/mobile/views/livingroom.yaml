@@ -1,0 +1,14 @@
+title: Back
+subview: true
+path: livingroom
+icon: mdi:sofa
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🛋️ Living Room
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/livingroom/scenes.yaml
+      - !include ../cards/livingroom/lights.yaml
+      #- !include ../cards/livingroom/desk_lights.yaml

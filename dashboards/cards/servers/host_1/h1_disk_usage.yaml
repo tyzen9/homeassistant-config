@@ -1,0 +1,84 @@
+type: vertical-stack
+cards:
+  - type: custom:mushroom-title-card
+    title: Disk Usage
+
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:entity-progress-card
+        name: OS (NVMe)
+        entity: sensor.pensieve_lan_hostroot_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.pensieve_lan_hostroot_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }
+      - type: custom:entity-progress-card
+        name: Data
+        entity: sensor.pensieve_lan_mnt_hdd1_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.pensieve_lan_mnt_hdd1_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }
+      - type: custom:entity-progress-card
+        name: Baseball VIdeos
+        entity: sensor.pensieve_lan_mnt_hdd2_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.pensieve_lan_mnt_hdd2_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }
+      - type: custom:entity-progress-card
+        name: Photography
+        entity: sensor.pensieve_lan_mnt_hdd3_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.pensieve_lan_mnt_hdd3_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }
+      - type: custom:entity-progress-card
+        name: Software
+        entity: sensor.pensieve_lan_mnt_hdd4_disk_usage
+        name_info: >-
+          {% from 'macros.jinja' import human_readable_disk_space %}
+          {{ human_readable_disk_space(states('sensor.pensieve_lan_mnt_hdd4_disk_free')) }}
+        force_circular_background: true
+        theme: optimal_when_low
+        card_mod:
+          style: |
+            ha-card > div > div.content-section > div.name-group > span > span.name-custom-info {
+              display: block !important;
+              margin-left: auto !important;
+              width: fit-content !important;
+            }

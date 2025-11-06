@@ -1,0 +1,10 @@
+title: Home
+path: home
+icon: mdi:home
+cards:
+  - type: vertical-stack
+    cards:
+      - !include ../nav/header.yaml
+      - !include ../cards/garage/door.yaml
+      - !include ../cards/laundryRoom/washerDryer.yaml
+      - !include ../nav/areas.yaml

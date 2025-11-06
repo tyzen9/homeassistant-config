@@ -1,0 +1,51 @@
+# Scenes -----------------------------------------------------------------------
+type: horizontal-stack
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      
+      - type: entity
+        entity: light.zl2
+        content_info: name
+        name: Night
+        icon: mdi:moon-waning-crescent
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.livingroom_lamp_evening
+
+      - type: entity
+        entity: light.zl2
+        content_info: name
+        name: Day
+        icon: mdi:white-balance-sunny
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.livingroom_lamp_morning
+
+      - type: entity
+        entity: light.zl2
+        content_info: name
+        name: Bright
+        icon: mdi:lightbulb-on
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.livingroom_floorlamp_bright
+
+      - type: entity
+        entity: light.zl2
+        content_info: name
+        name: Mood
+        icon: mdi:movie-roll
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.livingroom_movie_lighting
+
+    alignment: center

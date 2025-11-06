@@ -1,0 +1,36 @@
+# Light Controls --------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Front Yard
+    heading_style: title
+    badges: []
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-light-card
+        entity: switch.relay_frontyard_houseoutlets
+        name: House Floods
+        icon: mdi:light-flood-up
+        layout: horizontal
+
+      - type: custom:mushroom-light-card
+        entity: switch.relay_frontyard_garagelights
+        name: Driveway
+        icon: mdi:outdoor-lamp
+        layout: horizontal
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd03_dimmer
+    name: Main Porch
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: true
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd04_dimmer
+    name: Small Porch
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: true

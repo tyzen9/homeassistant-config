@@ -1,0 +1,12 @@
+title: Back
+subview: true
+path: den
+icon: mdi:fireplace
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 🛋️ Den
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/den/lights.yaml

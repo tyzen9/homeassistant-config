@@ -1,0 +1,30 @@
+# Light Controls --------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:garage-variant
+    heading: Garage Lights
+    heading_style: title
+    badges: []
+    card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+  - type: custom:mushroom-light-card
+    entity: switch.relay_garage_ceilinglight
+    name: Lights
+    icon: mdi:lightbulb-fluorescent-tube
+    layout: horizontal
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-entity-card
+        entity: input_boolean.garage_motion_lighting_enabled
+        name: Motion Lighting
+        tap_action:
+          action: toggle
+
+      - type: custom:mushroom-entity-card
+        entity: input_boolean.garage_motion_lighting_autocorrect
+        icon: mdi:sync
+        name: Motion Reset
+        tap_action:
+          action: toggle

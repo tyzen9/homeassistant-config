@@ -1,0 +1,201 @@
+t9_variables:
+  variables:
+    color_active_icon: "#5EBD6D"
+    color_error_icon: "#FF0000"
+    color_warning_icon: "#FFB900"
+    color_inactive_icon: "gray"
+    color_lightOn_icon: "yellow"
+    background_color_OK: "#172b03"
+    background_color_Warning: "#564a03"
+    background_color_Error: "#150004"
+    box_OK: "0px 0px 2px green"
+    box_lightOn: "0px 0px 10px yellow"
+    box_Warning: "0px 0px 5px yellow"
+    box_Error: "0px 0px 5px red"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Button definitions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+button-base:
+  template: t9_variables
+  styles:
+    card:
+      - "--mdc-ripple-color": yellow
+      - "--mdc-ripple-press-opacity": 0.2
+    icon:
+      - color: "[[[ return variables.color_inactive_icon ]]]"
+      - opacity: 1
+    name:
+      - font-size: 1em
+      - white-space: normal
+    state:
+      - font-size: 1em
+      - white-space: normal
+    label:
+      - font-size: 0.8em
+      - white-space: normal
+      - padding-top: 0.3em
+
+button-icon:
+  template: button-base
+  size: 90%
+  show_label: false
+  show_state: false
+  styles:
+    card:
+      - height: 54px
+      - width: 68px
+      - padding: 0.2em
+    name:
+      - font-size: 10px
+      - white-space: normal
+      - padding-bottom: 5px
+
+button-wide:
+  template: button-base
+  size: 90%
+  styles:
+    card:
+      - height: 75px
+      - padding: 0.2em
+    grid:
+      # Grid documentation: https://github.com/custom-cards/button-card#advanced-styling-options
+      - position: relative
+      - grid-template-areas: '"i n" "i l"'
+      - grid-template-columns: 1fr 1fr
+      - grid-template-rows: 1fr 1fr
+    # Bottom align the Name
+    name:
+      - align-self: end
+    # Top align the Label
+    label:
+      - align-self: baseline
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# extra definitions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+extra-pulse:
+  extra_styles: |
+    @keyframes pulse {
+          20% { color: gray }
+        }
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Effect definitions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+effect-state-on:
+  state:
+    - value: "on"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_active_icon ]]]"
+    - value: "off"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_inactive_icon ]]]"
+
+effect-state-onwait:
+  extra_styles: |
+    @keyframes pulse {
+          20% { color: yellow }
+        }
+    @keyframes shake {
+      0% { transform: rotatez(0deg); }
+      25% { transform: rotatez(5deg); }
+      50% { }
+      75% { transform: rotatez(-5deg); }  
+      100% { transform: rotatez(0deg); }
+    }
+  state:
+    - value: "on"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_active_icon ]]]"
+          - animation: shake .3s linear infinite
+    - value: "wait"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_active_icon ]]]"
+          - animation: pulse 3s linear infinite
+
+effect-warn:
+  template: extra-pulse
+  styles:
+    icon:
+      - color: "[[[ return variables.color_warning_icon ]]]"
+      - animation: pulse 1.5s linear infinite
+
+effect-warn-state-error:
+  template: extra-pulse
+  state:
+    - value: "Error"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_error_icon ]]]"
+          - animation: pulse 1.5s linear infinite
+
+effect-warn-state-on:
+  template: extra-pulse
+  state:
+    - value: "on"
+      styles:
+        icon:
+          - color: "[[[ return variables.color_warning_icon ]]]"
+          - animation: pulse 1.5s linear infinite
+
+effect-warn-state-gte0:
+  template: extra-pulse
+  state:
+    - operator: ">"
+      value: 0
+      styles:
+        icon:
+          - color: "[[[ return variables.color_warning_icon ]]]"
+          - animation: pulse 1.5s linear infinite
+
+### OLD BELOW ###
+
+standard:
+  template: t9_variables
+  size: 90%
+  styles:
+    card:
+      - height: 70px
+      - padding: 0.2em
+      - "--mdc-ripple-color": yellow
+      - "--mdc-ripple-press-opacity": 0.2
+    icon:
+      - color: "[[[ return variables.color_inactive_icon ]]]"
+      - opacity: 1
+    name:
+      - font-size: 1em
+      - white-space: normal
+    state:
+      - font-size: 1em
+      - white-space: normal
+    label:
+      - font-size: 0.8em
+      - white-space: normal
+      - padding-top: 0.3em
+
+nav-button:
+  template: t9_variables
+  size: 90%
+  show_label: false
+  show_state: false
+  styles:
+    card:
+      - height: 50px
+      - padding: 0.2em
+      - "--mdc-ripple-color": yellow
+      - "--mdc-ripple-press-opacity": 0.2
+    icon:
+      - color: "[[[ return variables.color_inactive_icon ]]]"
+      - height: 40px
+      - opacity: 1
+    name:
+      - font-size: 10px
+      - white-space: normal
+      - padding-bottom: 5px

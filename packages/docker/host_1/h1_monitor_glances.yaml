@@ -42,7 +42,7 @@ sensor:
   - platform: rest
     name: "Host 1 - Glances - Current Digest"
     unique_id: "host_1_glances_current_digest"
-    resource_template: "http://{{ states('sensor.secret_host_1_hostname') }}:2375/images/{{ state_attr('sensor.host_1_glances', 'image') }}/json"
+    resource_template: "http://pensieve.lan:2375/images/{{ state_attr('sensor.host_1_glances', 'image') }}/json"
     scan_interval: 7200
     value_template: "{{ value_json.RepoDigests[0].split('@')[1] }}"
     json_attributes_path: "$.Config.Labels"
@@ -97,9 +97,11 @@ template:
           app_name: >
             {{ state_attr('sensor.host_1_glances', 'friendly_name') }}
           version: >
-            {{ state_attr('sensor.host_1_glances_current_digest', 'org.opencontainers.image.version') 
-                or state_attr('sensor.host_1_glances', 'image').split(':')[-1] + '*' 
-                or 'unknown' }}
+            {% from 'macros.jinja' import get_container_version %}
+            {{ get_container_version(
+                'sensor.host_1_glances_current_digest',
+                'sensor.host_1_glances'
+              ) }}
           update_available: >
             {{ this.state }}
           container_state: >

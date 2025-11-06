@@ -1,0 +1,29 @@
+type: custom:button-card
+name: UPS 1
+entity: sensor.ups_1_status_data
+template:
+  - standard
+icon: mdi:battery-alert
+styles:
+  card:
+    - height: 90px
+    - background-color: "#150004"
+    - box-shadow: 0px 0px 5px red
+  icon:
+    - color: "[[[ return variables.color_warning_icon ]]]"
+show_label: true
+label: >
+  [[[ 
+    let entityId = 'sensor.ups_1_status';
+    return states[entityId].state;
+  ]]]
+state:
+  - value: "OL"
+    icon: mdi:battery-check
+    styles:
+      card:
+        - background-color: "#091500"
+        - box-shadow: 0px 0px 2px green
+      icon:
+        - color: "[[[ return variables.color_inactive_icon ]]]"
+  - value:

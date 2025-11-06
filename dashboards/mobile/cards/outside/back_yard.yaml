@@ -1,0 +1,29 @@
+# Light Controls --------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Back Yard
+    heading_style: title
+    badges: []
+    card_mod: !include ../../includes/card_mod/header_padding.yaml
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-light-card
+        entity: switch.ws03_switch
+        name: Garage
+        icon: mdi:light-flood-up
+        layout: horizontal
+
+      - type: custom:mushroom-light-card
+        entity: switch.relay_backyard_porchlights
+        name: Porch
+        icon: mdi:outdoor-lamp
+        layout: horizontal
+
+      - type: custom:mushroom-light-card
+        entity: switch.relay_backyard_shedwalllights
+        name: Shed
+        icon: mdi:light-recessed
+        layout: horizontal

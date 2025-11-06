@@ -1,0 +1,116 @@
+type: vertical-stack
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: heading
+        icon: mdi:home
+        heading: Areas
+        heading_style: title
+        badges: []
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: Den
+        secondary: ""
+        icon: mdi:fireplace
+        tap_action:
+          action: navigate
+          navigation_path: den
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: Kitchen
+        secondary: ""
+        icon: mdi:chef-hat
+        tap_action:
+          action: navigate
+          navigation_path: kitchen
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: Living
+        secondary: Room
+        icon: mdi:sofa
+        tap_action:
+          action: navigate
+          navigation_path: livingroom
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: Second
+        secondary: Floor
+        icon: mdi:crown
+        tap_action:
+          action: navigate
+          navigation_path: second_floor
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: Logan's
+        secondary: Bedroom
+        icon: mdi:bed
+        tap_action:
+          action: navigate
+          navigation_path: guestroom_large
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: JT's
+        secondary: Bedroom
+        icon: mdi:bed
+        tap_action:
+          action: navigate
+          navigation_path: guestroom_small
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: Basement
+        secondary: Theater
+        icon: mdi:movie
+        tap_action:
+          action: navigate
+          navigation_path: theater
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: Office
+        secondary: ""
+        icon: mdi:desk-lamp
+        tap_action:
+          action: navigate
+          navigation_path: office
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+      - type: custom:mushroom-template-card
+        primary: Outside
+        secondary: ""
+        icon: mdi:home
+        badge_icon: ""
+        tap_action:
+          action: navigate
+          navigation_path: outside
+        card_mod: !include ../includes/card_mod/navButton_area.yaml
+
+  - type: horizontal-stack
+    cards:
+      - type: heading
+        icon: mdi:cog
+        heading: Devices
+        heading_style: title
+        badges: []
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        primary: 3D Printer
+        secondary: ""
+        icon: mdi:printer-3d-nozzle
+        tap_action:
+          action: navigate
+          navigation_path: 3dprinter
+        card_mod: !include ../includes/card_mod/navButton_area.yaml

@@ -1,0 +1,21 @@
+# Light Controls ---------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Lights
+    heading_style: title
+    badges: []
+    
+
+  - type: custom:mushroom-light-card
+    entity: light.zl1
+    name: Bedside Lamp
+    icon: mdi:lamp
+    layout: horizontal
+    fill_container: false
+    show_brightness_control: true
+    show_color_control: true
+    show_color_temp_control: false
+    collapsible_controls: false
+    use_light_color: true

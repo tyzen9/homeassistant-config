@@ -1,0 +1,21 @@
+title: Back
+subview: true
+path: second_floor
+icon: mdi:chess-queen
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 👑 Master Bedroom
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/main_bedroom/lights.yaml
+      - !include ../cards/main_bedroom/scenes.yaml
+
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-title-card
+        title: 💡 Hallway
+        card_mod: !include ../includes/card_mod/subview_title.yaml
+
+      - !include ../cards/second_floor/lights.yaml

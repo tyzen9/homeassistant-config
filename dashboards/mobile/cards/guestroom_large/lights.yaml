@@ -1,0 +1,31 @@
+# Light Controls ---------------------------------------------------------------
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:lightbulb-on
+    heading: Lights
+    heading_style: title
+    badges: []
+
+  - type: custom:mushroom-light-card
+    entity: light.dimmer_wd08_dimmer
+    name: Ceiling
+    icon: mdi:light-recessed
+    layout: horizontal
+    show_brightness_control: true
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-light-card
+        entity: switch.plug_zp2
+        name: Light Pole
+        icon: mdi:sign-pole
+        layout: horizontal
+        show_brightness_control: false
+
+      - type: custom:mushroom-light-card
+        entity: switch.plug_zp1
+        name: Wall Sign
+        icon_color: pink
+        layout: horizontal
+        show_brightness_control: false

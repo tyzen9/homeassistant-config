@@ -1,0 +1,132 @@
+type: vertical-stack
+cards:
+
+  - type: horizontal-stack
+    cards:
+      - type: heading
+        icon: mdi:hanger
+        heading: Laundry Room
+        heading_style: title
+        badges: []
+
+  - type: horizontal-stack
+    cards:
+      # -------------------
+      # Washing Machine
+      # ------------------
+      - type: custom:button-card
+        name: Washer
+        entity: sensor.laundry_washing_machine_state
+        icon: mdi:washing-machine
+        template:
+          - button-wide
+          - effect-state-onwait
+        show_label: true
+        label: >
+          [[[ 
+            let entityId = 'sensor.laundry_washing_machine_state';
+            let lastchanged = Date.parse(states[entityId].last_changed);
+            let lastChangedDate = (lastchanged instanceof Date) ? lastchanged : new Date(lastchanged);
+            let nowState = states[entityId].state;
+            let stateString = "";
+
+            const formatter = new Intl.RelativeTimeFormat('en');
+            const ranges = {
+              years: 3600 * 24 * 365,
+              months: 3600 * 24 * 30,
+              weeks: 3600 * 24 * 7,
+              days: 3600 * 24,
+              hours: 3600,
+              minutes: 60,
+              seconds: 1
+            };
+
+            const secondsElapsed = (lastChangedDate.getTime() - Date.now()) / 1000;
+            const minuntesElapsed = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+
+            if (nowState === "off"){
+              stateString = "Cycle Complete"
+              let mins = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+              if (mins > 5) {
+                for (let key in ranges) {
+                  if (ranges[key] < Math.abs(secondsElapsed)) {
+                    const delta = secondsElapsed / ranges[key];
+                    stateString = formatter.format(Math.round(delta), key);
+                    break;
+                  }
+                }
+              }
+            } else {
+              if (nowState === "wait") stateString = "Wait: "
+              if (minuntesElapsed > 60) {
+                let hours = Math.abs(Math.round(secondsElapsed/ranges["hours"]));
+                let mins = Math.abs(Math.round( ((hours * ranges["hours"])-Math.abs(secondsElapsed) ) /ranges["minutes"]));
+                stateString += hours+" hr " + mins +" mins";
+              } else {
+                let mins = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+                stateString += mins +" mins";
+              }
+            }
+
+            return stateString;
+          ]]]
+
+      # -------------------
+      # Tumble Dryer
+      # ------------------
+      - type: custom:button-card
+        name: Dryer
+        entity: sensor.laundry_tumble_dryer_state
+        icon: mdi:tumble-dryer
+        template:
+          - button-wide
+          - effect-state-onwait
+        show_label: true
+        # Here we are using [[[ JavaScript to format the button label
+        label: >
+          [[[ 
+            let entityId = 'sensor.laundry_tumble_dryer_state';
+            let lastchanged = Date.parse(states[entityId].last_changed);
+            let lastChangedDate = (lastchanged instanceof Date) ? lastchanged : new Date(lastchanged);
+            let nowState = states[entityId].state;
+            let stateString = "";
+
+            const formatter = new Intl.RelativeTimeFormat('en');
+            const ranges = {
+              years: 3600 * 24 * 365,
+              months: 3600 * 24 * 30,
+              weeks: 3600 * 24 * 7,
+              days: 3600 * 24,
+              hours: 3600,
+              minutes: 60,
+              seconds: 1
+            };
+
+            const secondsElapsed = (lastChangedDate.getTime() - Date.now()) / 1000;
+            const minuntesElapsed = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+
+            if (nowState === "off"){
+              stateString = "Cycle Complete"
+              let mins = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+              if (mins > 5) {
+                for (let key in ranges) {
+                  if (ranges[key] < Math.abs(secondsElapsed)) {
+                    const delta = secondsElapsed / ranges[key];
+                    stateString = formatter.format(Math.round(delta), key);
+                    break;
+                  }
+                }
+              }
+            } else {
+              if (nowState === "wait") stateString = "Wait: "
+              if (minuntesElapsed > 60) {
+                let hours = Math.abs(Math.round(secondsElapsed/ranges["hours"]));
+                let mins = Math.abs(Math.round( ((hours * ranges["hours"])-Math.abs(secondsElapsed) ) /ranges["minutes"]));
+                stateString += hours+" hr " + mins +" mins";
+              } else {
+                let mins = Math.abs(Math.round(secondsElapsed/ranges["minutes"]));
+                stateString += mins +" mins";
+              }
+            }
+            return stateString;
+          ]]]
