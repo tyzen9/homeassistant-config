@@ -154,7 +154,7 @@ automation:
   # the settings -> people section after clicking on a person's identity
   #
   # Dependencies:
-  #  - button.daytona_sleep (INT HAAS.Agent)
+  #  - button.snape_sleep (INT HAAS.Agent)
   # ---------------------------------------------------------------------------
   - alias: Person 1 - Left Home
     id: person_1_left_home
