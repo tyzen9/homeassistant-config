@@ -20,7 +20,7 @@ cards:
             - type: entity
               show_state: true
               show_icon: true
-              entity: binary_sensor.daytona_power
+              entity: binary_sensor.snape_power
               state_content:
                 - last_changed
                 - state
@@ -59,6 +59,6 @@ cards:
               name: Wake
               tap_action:
                 action: call-service
-                service: input_button.press
+                service: button.press
                 target:
-                  entity_id: input_button.button_wol_snape
+                  entity_id: button.wake_on_lan_snape

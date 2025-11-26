@@ -28,12 +28,27 @@
 # *****************************************************************************
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# HELPERS
+# SENSORS
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-input_button:
-  button_wol_snape:
-    name: PC Snape - Wake On LAN
-    icon: mdi:sleep-off
+template:
+  # ---------------------------------------------------------------------------
+  # This binary sensor uses HASS.Agent to determine if the main office PC
+  # named Snape is powered on
+  #
+  # External Package Dependencies:
+  #  - sensor.snape_monitorpowerstate (HASS.Agent)
+  # ---------------------------------------------------------------------------
+  - binary_sensor:
+      - name: Snape - Power
+        unique_id: snape_power
+        state: >
+          {{ states('sensor.snape_monitorpowerstate') == "PowerOn" }}
+        icon: >
+          {% if is_state("binary_sensor.snape_power", "on") %}
+            mdi:power-plug-outline
+          {% else %}
+            mdi:power-plug-off-outline
+          {% endif %}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AUTOMATIONS

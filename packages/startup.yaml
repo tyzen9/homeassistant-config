@@ -56,15 +56,15 @@ automation:
             - media_player.alexa_office
 
 
-  # ---------------------------------------------------------------------------
-  # When Home Assistant starts, wait a short period of time, and reset the rest
-  # sensors.  This is a workaround for the rest sensors starting before all
-  # Home Assistant parameters have been initialized.
-  # ---------------------------------------------------------------------------
-  - alias: Reload REST sensors after startup
-    trigger:
-      - platform: homeassistant
-        event: start
-    action:
-      - delay: '00:00:5'
-      - service: rest.reload
+  # # ---------------------------------------------------------------------------
+  # # When Home Assistant starts, wait a short period of time, and reset the rest
+  # # sensors.  This is a workaround for the rest sensors starting before all
+  # # Home Assistant parameters have been initialized.
+  # # ---------------------------------------------------------------------------
+  # - alias: Reload REST sensors after startup
+  #   trigger:
+  #     - platform: homeassistant
+  #       event: start
+  #   action:
+  #     - delay: '00:00:5'
+  #     - service: rest.reload

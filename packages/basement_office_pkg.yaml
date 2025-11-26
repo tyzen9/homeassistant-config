@@ -23,28 +23,7 @@
 #
 # *****************************************************************************
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# SENSORS
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-template:
-  # ---------------------------------------------------------------------------
-  # This binary sensor uses HASS.Agent to determine if the main office PC
-  # named Daytona is powered on
-  #
-  # External Package Dependencies:
-  #  - sensor.daytona_monitorpowerstate (HASS.Agent)
-  # ---------------------------------------------------------------------------
-  - binary_sensor:
-      - name: Daytona - Power
-        unique_id: daytona_power
-        state: >
-          {{ states('sensor.daytona_monitorpowerstate') == "PowerOn" }}
-        icon: >
-          {% if is_state("binary_sensor.daytona_power", "on") %}
-            mdi:power-plug-outline
-          {% else %}
-            mdi:power-plug-off-outline
-          {% endif %}
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AUTOMATIONS

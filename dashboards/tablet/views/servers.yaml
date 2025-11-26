@@ -7,13 +7,13 @@ type: custom:grid-layout
 layout:
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
 cards:
-  # - !include ../../cards/servers/host_3/h3_performance.yaml
-  - type: horizontal-stack
-    cards:
-      - type: vertical-stack
-        cards:
-        - !include ../../cards/servers/host_1/h1_containers.yaml
-        - !include ../../cards/servers/host_2/h2_containers.yaml
-      - type: vertical-stack
-        cards:
-        - !include ../../cards/servers/host_3/h3_containers.yaml
+  - !include ../../cards/servers/host_3/h3_disk_usage.yaml
+  # - type: horizontal-stack
+  #   cards:
+  #     - type: vertical-stack
+  #       cards:
+  #       - !include ../../cards/servers/host_1/h1_containers.yaml
+  #       - !include ../../cards/servers/host_2/h2_containers.yaml
+  #     - type: vertical-stack
+  #       cards:
+  #       - !include ../../cards/servers/host_3/h3_containers.yaml
