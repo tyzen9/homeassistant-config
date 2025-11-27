@@ -7,10 +7,11 @@ default_config:
 
 logger:
   default: warning
-  # logs:
-  #  homeassistant.components.rest: debug
-  #  homeassistant.components.glances: debug
-  #  homeassistant.components.command_line: debug
+  logs:
+      custom_components.moonraker: error
+      #  homeassistant.components.rest: debug
+      #  homeassistant.components.glances: debug
+      #  homeassistant.components.command_line: debug
 
 # Automations managed in the UI are stored here
 automation: !include automations.yaml
