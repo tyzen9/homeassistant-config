@@ -38,9 +38,9 @@ switch:
     name: Christmas Indoor Switch Group
     unique_id: christmas_indoor_switch_group
     entities:
+      - switch.plug_wp06
       # - switch.plug_zp07_switch
       # - switch.plug_zp11
-      - switch.plug_zp06
       # - switch.plug_zp10
       # - switch.plug_zp11
 
