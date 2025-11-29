@@ -33,6 +33,7 @@ switch:
     entities:
       - switch.relay_frontyard_houseoutlets
       - switch.relay_frontyard_garagelights
+      - switch.plug_zp05
 
   - platform: group
     name: Exterior - Back Yard Switch Group

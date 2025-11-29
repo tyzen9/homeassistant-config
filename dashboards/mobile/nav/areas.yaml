@@ -96,6 +96,37 @@ cards:
           navigation_path: outside
         card_mod: !include ../includes/card_mod/navButton_area.yaml
 
+
+  - type: horizontal-stack
+    cards:
+      - type: heading
+        icon: mdi:pine-tree
+        heading: Indoor Christmas Lights
+        heading_style: title
+        badges: []
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-light-card
+        entity: switch.plug_zp09
+        name: Den Tree
+        icon: mdi:pine-tree
+        layout: horizontal
+
+      - type: custom:mushroom-light-card
+        entity: light.rgbw_3
+        name: Den Nativity
+        icon: mdi:cross
+        layout: horizontal
+        use_light_color: true
+
+
+      - type: custom:mushroom-light-card
+        entity: switch.plug_wp06
+        name: Basement Trees
+        icon: mdi:forest
+        layout: horizontal
+
   - type: horizontal-stack
     cards:
       - type: heading

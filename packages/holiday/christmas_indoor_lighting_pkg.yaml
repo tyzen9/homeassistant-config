@@ -38,18 +38,21 @@ switch:
     name: Christmas Indoor Switch Group
     unique_id: christmas_indoor_switch_group
     entities:
-      - switch.plug_wp06
+      - switch.plug_zp06
+      - switch.plug_zp03
+      - switch.plug_zp05
+      - switch.plug_zp09
       # - switch.plug_zp07_switch
       # - switch.plug_zp11
       # - switch.plug_zp10
       # - switch.plug_zp11
 
-# light:
-#   - platform: group
-#     name: Christmas Indoor Light Group
-#     unique_id: christmas_indoor_light_group
-#     entities:
-#       # - light.rgbw_shelly01
+light:
+  - platform: group
+    name: Christmas Indoor Light Group
+    unique_id: christmas_indoor_light_group
+    entities:
+      - light.rgbw_3
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # HELPERS
@@ -77,6 +80,7 @@ automation:
     trigger:
       - platform: sun
         event: sunrise
+        offset: "-01:00:00"
       - platform: sun
         event: sunset
     condition:
@@ -159,20 +163,20 @@ automation:
             target:
               entity_id:
                 - switch.christmas_indoor_switch_group
-          # - action: light.turn_on
-          #   target:
-          #     entity_id:
-          #       - light.indoor_accent_light_group
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.christmas_indoor_light_group
         else:
           # Turn off all the indoor accent switch/lights
           - action: switch.turn_off
             target:
               entity_id:
                 - switch.christmas_indoor_switch_group
-          # - action: light.turn_off
-          #   target:
-          #     entity_id:
-          #       - light.indoor_accent_light_group
+          - action: light.turn_off
+            target:
+              entity_id:
+                - light.christmas_indoor_light_group
 
 
   # ---------------------------------------------------------------------------
