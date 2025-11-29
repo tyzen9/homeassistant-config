@@ -59,9 +59,9 @@ automation:
       # When the printer has completed printing
       - trigger: state
         entity_id:
-          - binary_sensor.octoprint_printing
-        from: "on"
-        to: "off"
+          - sensor.ender_current_print_state
+        from: "printing"
+        to: "complete"
     action:
       - if:
           # If the auto power off is enabled

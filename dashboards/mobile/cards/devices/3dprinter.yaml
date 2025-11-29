@@ -22,5 +22,5 @@ cards:
         show_state: false
         show_name: false
         camera_view: live
-        entity: camera.octoprint_camera
-        camera_image: camera.octoprint_camera
+        entity: camera.ender_endercam_1
+        camera_image: camera.ender_endercam_1
